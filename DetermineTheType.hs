@@ -44,12 +44,12 @@ w = y * 10
 z y = y * 10
 
 -- 4)   What is the type of f1?
-f1 = 4 / y
+ff = 4 / y
 ----------------------------------
 
 
 -- 5)   What is the type of f2?
-x2 = "Julie"
-y2 = " <3 "
-z2 = "Haskell"
-f2 = x ++ y ++ z
+x2  = "Julie"
+y2  = " <3 "
+z2  = "Haskell"
+fff = x2 ++ y2 ++ z2
