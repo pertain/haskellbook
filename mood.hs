@@ -9,8 +9,8 @@ instance Eq Mood
 
 instance Show Mood
     where
-        show Blah = "Blah"
-        show Woot = "Woot"
+        show Blah   = "Blah"
+        show _      = "Woot"
 
 --changeMood :: Mood -> Mood    -- These are identical
 changeMood :: (->) Mood Mood    -- type declarations
