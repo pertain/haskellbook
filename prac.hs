@@ -23,3 +23,27 @@ a _ x = x
 
 a' :: (a -> b) -> a -> b
 a' aToB = aToB
+
+
+-------------------------------------------------------------
+-- Does it typecheck? (from ch 06) If not, then fix it.
+-------------------------------------------------------------
+
+--data Person = Person Bool
+newtype Person = Person Bool
+    deriving Show
+
+printPerson :: Person -> IO ()
+--printPerson = putStrLn . show
+printPerson = print
+
+-------------------------------------
+
+data Mood = Blah | Woot deriving (Eq,Show)
+
+settleDown x =
+    if x == Woot
+        then Blah
+        else x
+
+-------------------------------------
