@@ -1,3 +1,7 @@
+-------------------------------------------------------------
+-- Given a type, write the function (ch 05)
+-------------------------------------------------------------
+
 myfunc :: (x -> y) -> (y -> z) -> c -> (a,x) -> (a,z)
 myfunc xToY yToZ _ (a,x) = (a, (yToZ . xToY) x)
 
@@ -26,7 +30,7 @@ a' aToB = aToB
 
 
 -------------------------------------------------------------
--- Does it typecheck? (from ch 06) If not, then fix it.
+-- Does it typecheck? If not, then fix it. (ch 06)
 -------------------------------------------------------------
 
 --data Person = Person Bool
@@ -37,7 +41,7 @@ printPerson :: Person -> IO ()
 --printPerson = putStrLn . show
 printPerson = print
 
--------------------------------------
+------------------------------------------
 
 data Mood = Blah | Woot deriving (Eq,Show)
 
@@ -46,4 +50,4 @@ settleDown x =
         then Blah
         else x
 
--------------------------------------
+------------------------------------------
