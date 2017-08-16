@@ -30,7 +30,7 @@ a' aToB = aToB
 
 
 -------------------------------------------------------------
--- Does it typecheck? If not, then fix it. (ch 06)
+-- Does it typecheck? If not, fix it. (ch 06)
 -------------------------------------------------------------
 
 --data Person = Person Bool
@@ -41,13 +41,51 @@ printPerson :: Person -> IO ()
 --printPerson = putStrLn . show
 printPerson = print
 
-------------------------------------------
+---------------------------------------------
 
-data Mood = Blah | Woot deriving (Eq,Show)
+data Mood = Blah | Woot
+    deriving (Eq, Show)
 
 settleDown x =
     if x == Woot
         then Blah
         else x
 
-------------------------------------------
+---------------------------------------------
+
+type Subject = String
+type Verb = String
+type Object = String
+
+data Sentence = Sentence Subject Verb Object
+    deriving (Eq, Show)
+
+s1 = Sentence "dogs" "drool"
+s2 = Sentence "Julie" "loves" "dogs"
+
+---------------------------------------------
+
+data Rocks = Rocks String
+    deriving (Eq, Show)
+
+data Yeah = Yeah Bool
+    deriving (Eq, Show)
+
+data Papu = Papu Rocks Yeah
+    deriving (Eq, Show)
+
+-- Does not typecheck
+--  Papu takes Rocks Yeah, not String Bool
+--phew = Papu "chases" True
+
+-- Does typecheck
+truth = Papu (Rocks "chomskydoz") (Yeah True)
+
+-- Does typecheck
+equalityForAll :: Papu -> Papu -> Bool
+equalityForAll p p' = p == p'
+
+-- Does not typecheck
+--  No Ord instance for Papu
+--comparePapus :: Papu -> Papu -> Bool
+--comparePapus p p' = p > p'
