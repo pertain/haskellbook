@@ -15,6 +15,9 @@ almostFactorial =
         else n * (f (n - 1))
 
 
+-- Fully derived, but needs unsafeCoerce
 factorial = yComb almostFactorial
 
+-- Using Haskell's fixed-point combinator (fix)
+-- No need for unsafeCoerce
 factorial' = fix almostFactorial
