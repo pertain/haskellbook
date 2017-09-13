@@ -1,3 +1,5 @@
+-- Caesar Cipher (ch. 09)
+
 module Cipher where
 
 import Data.Char
