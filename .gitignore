@@ -15,3 +15,15 @@
 # Include haskell source files
 # ---------------------------------
 !*.hs
+
+# ---------------------------------
+# Include hangman project
+# ---------------------------------
+!hangman
+hangman/*
+!hangman/data
+hangman/data/*
+!hangman/data/dict.txt
+!hangman/src
+hangman/src/*
+!hangman/src/*.hs
