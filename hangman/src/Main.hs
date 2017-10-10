@@ -1,7 +1,7 @@
 module Main where
 
 import Control.Monad (forever)
-import Data.Char (toLower)
+import Data.Char (toLower, toUpper)
 import Data.Maybe (isJust, fromJust)
 import Data.List (intersperse)
 import System.Exit (exitSuccess)
@@ -13,9 +13,11 @@ instance Show Puzzle where
     show (Puzzle _ discovered guessed) =
         (intersperse ' ' $
             fmap renderPuzzleChar discovered)
-        ++ " Guessed so far: " ++ guessed
+        ++ "  Guesses: " ++ guessed
 
-type WordList = [String]
+--type WordList = [String]
+newtype WordList = WordList [String]
+    deriving (Eq, Show)
 
 minLen :: Int
 minLen = 5
@@ -28,19 +30,23 @@ maxLen = 9
 allWords :: IO WordList
 allWords = do
     dict <- readFile "data/dict.txt"
-    return (lines dict)
+    --return (lines dict)
+    return $ WordList (lines dict)
 
 gameWords :: IO WordList
 gameWords = do
-    aw <- allWords
-    return (filter gameLength aw)
+    --aw <- allWords
+    --return (filter gameLength aw)
+    (WordList aw) <- allWords
+    return $ WordList (filter gameLength aw)
     where
         gameLength w =
             let l = length (w :: String)
             in l >= minLen && l <= maxLen
 
 randWord :: WordList -> IO String
-randWord wl = do
+--randWord wl = do
+randWord (WordList wl) = do
     randIndex <- randomRIO (0, (length wl) - 1)
     return (wl !! randIndex)
 
@@ -79,7 +85,8 @@ handleGuess puzzle guess = do
             return (fillInChar puzzle guess)
         (False,_) -> do
             putStrLn "No!\n"
-            return (fillInChar puzzle guess)
+            --return (fillInChar puzzle guess)
+            return (fillInChar puzzle (toUpper guess))
 
 gameOver :: Puzzle -> IO ()
 gameOver (Puzzle w cur cs) =
@@ -108,8 +115,8 @@ runGame :: Puzzle -> IO ()
 runGame puzzle = forever $ do
     gameOver puzzle
     gameWin puzzle
-    putStrLn ("Current puzzle is: " ++ show puzzle)
-    putStr "Guess a letter: "
+    putStrLn ("Word: " ++ show puzzle)
+    putStr "\nGuess a letter: "
     guess <- getLine
     case guess of
         [c] -> handleGuess puzzle c >>= runGame
@@ -119,4 +126,5 @@ main :: IO ()
 main = do
     word <- randWord'
     let puzzle = freshPuzzle (fmap toLower word)
+    putStrLn ""
     runGame puzzle
