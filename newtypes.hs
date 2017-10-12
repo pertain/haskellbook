@@ -2,7 +2,6 @@
 --type Cows = Int
 --type Goats = Int
 
-{--
 -- PART 2
 newtype Cows = Cows Int
     deriving (Eq, Show)
@@ -28,17 +27,12 @@ instance TooMany Goats
 instance TooMany Cows
     where
         tooMany (Cows n) = n > 30
---}
 
 
 {--
 -- PART 3
 -- This pragma is needed for deriving custom typeclasses
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
-class TooMany a
-    where
-        tooMany :: a -> Bool
 
 instance TooMany Int
     where
@@ -50,9 +44,9 @@ newtype Goats = Goats Int
 
 --{-# LANGUAGE FlexibleInstances #-}
 -- Logic Goats (1)
-class TooMany a
-    where
-        tooMany :: a -> Bool
+--class TooMany a
+    --where
+        --tooMany :: a -> Bool
 
 newtype GoatsByName = GoatsByName (Int, String)
     deriving (Eq, Show)
@@ -68,6 +62,17 @@ newtype GoatsByField = GoatsByField (Int, Int)
 instance TooMany GoatsByField
     where
         tooMany (GoatsByField (n, m)) = (n + m) > 60
+
+{--
+
+instance TooMany (Int, String)
+    where
+        tooMany (n, _) = n > 43
+
+instance TooMany (Int, Int)
+    where
+        tooMany (n, m) = (n + m) > 43
+--}
 
 {--
 -- Logic Goats (3) -- STILL UNDER CONSTRUCTION
