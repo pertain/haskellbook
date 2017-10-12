@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 -- PART 1
 --type Cows = Int
 --type Goats = Int
@@ -63,15 +64,15 @@ instance TooMany GoatsByField
     where
         tooMany (GoatsByField (n, m)) = (n + m) > 60
 
-{--
+--{--
 
 instance TooMany (Int, String)
     where
         tooMany (n, _) = n > 43
 
-instance TooMany (Int, Int)
-    where
-        tooMany (n, m) = (n + m) > 43
+--instance TooMany (Int, Int)
+    --where
+        --tooMany (n, m) = (n + m) > 43
 --}
 
 {--
@@ -83,3 +84,18 @@ instance TooMany Goats
     where
         tooMany (Goats (n, m)) = (n + m) > 75
 --}
+--newtype GoatSum a = GoatSum (a, a)
+    --deriving (Eq, Show)
+
+--instance (Num a, TooMany a, Ord a) => TooMany (GoatSum a)
+    --where
+        --tooMany (GoatSum (n, m)) = (n + m) > 105
+{--
+instance TooMany (GoatSum (a, a))
+    where
+        tooMany (GoatSum (n, m)) = (n + m ) > 105
+--}
+
+instance (Num a, TooMany a, Ord a) => TooMany (a, a)
+    where
+        tooMany (n, m) = (n + m) > 55
