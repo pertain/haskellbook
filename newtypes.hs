@@ -1,17 +1,29 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-} -- pragma needed for deriving custom typeclasses
 {-# LANGUAGE FlexibleInstances #-}
+
+-- Newtype exercises (ch 11)
+
+
 -- PART 1
---type Cows = Int
---type Goats = Int
+-- Type aliases -> not as rigid as newtypes
+-- functions using the alias type can also use the aliased type
+-- (i.e. tooWeird works fine with any Int, including Catdog)
+type Blowfish = Int
+type Catdog = Int
+
+tooWeird :: Blowfish -> Bool
+tooWeird b = (2 * b) == 9
+
 
 -- PART 2
-newtype Cows = Cows Int
-    deriving (Eq, Show)
-
+-- functions using newtype will not work with the underlying type
+-- (i.e. tooManyGoats takes Goats Int, but not Int)
 newtype Goats = Goats Int
     deriving (Eq, Show)
 
 tooManyGoats :: Goats -> Bool
 tooManyGoats (Goats n) = n > 42
+
 
 class TooMany a
     where
@@ -21,34 +33,30 @@ instance TooMany Int
     where
         tooMany n = n > 12
 
+instance TooMany Double
+    where
+        tooMany n = n > 13.0
+
 instance TooMany Goats
     where
-        tooMany (Goats n) = n > 45
-
-instance TooMany Cows
-    where
-        tooMany (Cows n) = n > 30
+        tooMany (Goats n) = n > 15
 
 
-{--
 -- PART 3
--- This pragma is needed for deriving custom typeclasses
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
-instance TooMany Int
-    where
-        tooMany n = n > 12
-
-newtype Goats = Goats Int
+-- TooMany is derived without the need for an explicit instance
+-- (requires the GeneralizedNewtypeDeriving pragma)
+newtype DerivedGoats = DerivedGoats Int
     deriving (Eq, Show, TooMany)
---}
 
---{-# LANGUAGE FlexibleInstances #-}
+
 -- Logic Goats (1)
---class TooMany a
-    --where
-        --tooMany :: a -> Bool
 
+-- This overloads class TooMany a (requires the FlexibleInstances pragma)
+instance TooMany (Int, String)
+    where
+        tooMany (n, _) = n > 35
+
+-- This approach sidesteps the need for the FlexibleInstances pragma
 newtype GoatsByName = GoatsByName (Int, String)
     deriving (Eq, Show)
 
@@ -56,46 +64,47 @@ instance TooMany GoatsByName
     where
         tooMany (GoatsByName (n, _)) = n > 35
 
+
 -- Logic Goats (2)
-newtype GoatsByField = GoatsByField (Int, Int)
-    deriving (Eq, Show)
 
-instance TooMany GoatsByField
-    where
-        tooMany (GoatsByField (n, m)) = (n + m) > 60
-
---{--
-
-instance TooMany (Int, String)
-    where
-        tooMany (n, _) = n > 43
-
+-- This overloads class TooMany a (requires the FlexibleInstances pragma)
+-- Commented out because it overlaps with instances in Logic Goats (3)
 --instance TooMany (Int, Int)
     --where
-        --tooMany (n, m) = (n + m) > 43
---}
+        --tooMany (n, m) = (n + m) > 60
 
-{--
--- Logic Goats (3) -- STILL UNDER CONSTRUCTION
-newtype Goats = Goats ((Num a, TooMany a) => (a, a))
+-- This approach sidesteps the need for the FlexibleInstances pragma
+newtype GoatsByLocation = GoatsByLocation (Int, Int)
     deriving (Eq, Show)
 
-instance TooMany Goats
+instance TooMany GoatsByLocation
     where
-        tooMany (Goats (n, m)) = (n + m) > 75
---}
---newtype GoatSum a = GoatSum (a, a)
-    --deriving (Eq, Show)
+        tooMany (GoatsByLocation (n, m)) = (n + m) > 90
 
---instance (Num a, TooMany a, Ord a) => TooMany (GoatSum a)
+
+-- Logic Goats (3) -- STILL UNDER CONSTRUCTION
+
+-- This overloads class TooMany a (requires the FlexibleInstances pragma)
+-- Works with any tuple (a, a) of types (Ord a, Num a)
+-- but requires explicit type declarations.
+-- This is more generic than the next instance
+--instance (Ord a, Num a) => TooMany (a, a)
     --where
-        --tooMany (GoatSum (n, m)) = (n + m) > 105
-{--
-instance TooMany (GoatSum (a, a))
-    where
-        tooMany (GoatSum (n, m)) = (n + m ) > 105
---}
+        --tooMany (n, m) = (n + m) > 48
 
-instance (Num a, TooMany a, Ord a) => TooMany (a, a)
+-- This overloads class TooMany a (requires the FlexibleInstances pragma)
+-- Works with any tuple (a, a) of types (Ord a, Num a, TooMany a).
+-- The thing to note here is that it only works for defined instances
+-- of TooMany a (i.e. TooMany Int, or TooMany Double)
+-- This is less generic than the previous instance
+instance (Ord a, Num a, TooMany a) => TooMany (a, a)
     where
-        tooMany (n, m) = (n + m) > 55
+        tooMany (n, m) = (n + m) > 49
+
+-- This approach sidesteps the need for the FlexibleInstances pragma
+newtype WayTooMany a = WayTooMany a
+    deriving (Eq, Show)
+
+instance (Ord a, Num a) => TooMany (WayTooMany (a, a))
+    where
+        tooMany (WayTooMany (n, m)) = (n + m) > 49
