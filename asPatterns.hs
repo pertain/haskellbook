@@ -16,7 +16,7 @@ isSubseqOf l1 l2 = l1 == subSeq l1 l2
 
 -- 2) Split a sentence into words, then tuple each word
 --    with the capitalized form of each.
-capitalizedWords :: String -> [(String, String)]
-capitalizedWords s = map (wordPair) (words s)
+capitalizeWords :: String -> [(String, String)]
+capitalizeWords s = map (wordPair) (words s)
     where
-        wordPair w@(x:xs) = (w, (toUpper x) : xs)
+        wordPair w@(x:xs) = (w, toUpper x : xs)
