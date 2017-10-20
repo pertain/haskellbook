@@ -72,9 +72,15 @@ testPostorder
         postPassed = postorder testTree == [1, 3, 2]
 
 -- preorder implementation of foldr for binary tree
-foldrTree :: (a -> b -> b) -> b -> BinaryTree a -> b
-foldrTree _ z Leaf = z
-foldrTree f z (Node l a r) = foldrTree f (foldrTree f (f a z) l) r
+foldrTreePre :: (a -> b -> b) -> b -> BinaryTree a -> b
+foldrTreePre _ z Leaf = z
+foldrTreePre f z (Node l a r) = foldrTreePre f (foldrTreePre f (f a z) l) r
+
+foldrTreeIn :: (a -> b -> b) -> b -> BinaryTree a -> b
+foldrTreeIn = undefined
+
+foldrTreePost :: (a -> b -> b) -> b -> BinaryTree a -> b
+foldrTreePost = undefined
 
 main :: IO ()
 main = do
