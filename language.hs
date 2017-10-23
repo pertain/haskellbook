@@ -1,13 +1,12 @@
 -- Language exercises (ch 11)
 
 import Data.Char (toUpper)
-import Data.List.Split (splitOneOf)
+import qualified Data.List.Split as LS
 
 -- 1) Write a function that capitalizes a word.
 capitalizeWord :: String -> String
 capitalizeWord (x:xs) = toUpper x : xs
 
-{-- UNDER CONSTRUCTION
 -- 2) Write a function that capitalizes sentences
 --    in a paragraph. Recognize when a new
 --    sentence has begun by checkin for periods.
@@ -15,6 +14,7 @@ capitalizeWord (x:xs) = toUpper x : xs
 capitalizeParagraph :: String -> String
 capitalizeParagraph s = unwords sentences
     where
-        ss = splitOneOf ".?!" s
-        sentences = map (capitalizeWord . tail) ss
---}
+        ss = LS.split (LS.condense $ LS.endsWithOneOf ".!?") s
+        capSentence (' ':xs) = capitalizeWord xs
+        capSentence s' = capitalizeWord s'
+        sentences = map capSentence ss
