@@ -5,55 +5,51 @@ module Cipher where
 import Data.Char
 import Data.List.Split (splitPlaces)
 
--- Caesar Cipher
-caesarCipher :: Int -> Char -> Char
-caesarCipher n c
-    | isLC      = chr (ord 'a' + (mod (alphIndex + n) 26))
-    | isUC      = chr (ord 'A' + (mod (alphIndex + n) 26))
-    | otherwise = ' '
-    where
-        alphIndex = ord (toLower c) - ord 'a'
-        isLC = generalCategory c == LowercaseLetter
-        isUC = generalCategory c == UppercaseLetter
+type ShiftSize = Int
+type InputChar = Char
+type ShiftedChar = Char
+type Key = String
+type ExpandedKey = String
+type Plain = String
+type Encrypted = String
 
-cEncipher :: Int -> String -> String
+-- Common Functions
+relativeCharIndex :: Char -> Int
+relativeCharIndex k = ord (toLower k) - ord 'a'
+
+
+-- Caesar Cipher
+caesarCipher :: ShiftSize -> InputChar -> ShiftedChar
+caesarCipher n c = case generalCategory c of
+    LowercaseLetter -> chr (ord 'a' + mod (relativeCharIndex c + n) 26)
+    UppercaseLetter -> chr (ord 'A' + mod (relativeCharIndex c + n) 26)
+    _               -> ' '
+
+cEncipher :: ShiftSize -> Plain -> Encrypted
 cEncipher n = map (caesarCipher n)
 
-cDecipher :: Int -> String -> String
+cDecipher :: ShiftSize -> Encrypted -> Plain
 cDecipher n = map (caesarCipher (negate n))
 
 
 -- Viginere Cipher
-vigenereCipher :: (Int, Char) -> Char
-vigenereCipher (k, c)
-    | vValidChar c = chr (ord 'a' + (mod (alphIndex + k) 26))
-    | otherwise = ' '
+vigenereCipher :: (ShiftSize, InputChar) -> ShiftedChar
+vigenereCipher = uncurry caesarCipher
+
+vFullKey :: Key -> String -> ExpandedKey
+vFullKey k s = unwords $ splitPlaces ls ks
     where
-        alphIndex = ord (toLower c) - ord 'a'
+        ks = take (length s) (concat $ repeat k)
+        ls = map length (words s)
 
-vCipherKey :: String -> String -> String
-vCipherKey s k = unwords $ splitPlaces ls ks
+vEncipher :: Key -> Plain -> Encrypted
+vEncipher k s = map vigenereCipher pairs
     where
-        ss = words s
-        ks = take (length s) $ concat $ repeat k
-        ls = map length ss
+        shifts = map relativeCharIndex (vFullKey k s)
+        pairs  = zip shifts s
 
-vValidChar :: Char -> Bool
-vValidChar c = generalCategory (toLower c) == LowercaseLetter
-
-vShiftVal :: Char -> Int
-vShiftVal k = ord (toLower k) - ord 'a'
-
-vEncipher :: String -> String -> String
-vEncipher s k = map vigenereCipher pairs
+vDecipher :: Key -> Encrypted -> Plain
+vDecipher k s = map vigenereCipher pairs
     where
-        key = vCipherKey s k
-        shifts = map vShiftVal key
-        pairs = zip shifts s
-
-vDecipher :: String -> String -> String
-vDecipher s k = map vigenereCipher pairs
-    where
-        key = vCipherKey s k
-        shifts = map (negate . vShiftVal) key
-        pairs = zip shifts s
+        shifts = map (negate . relativeCharIndex) (vFullKey k s)
+        pairs  = zip shifts s
