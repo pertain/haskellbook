@@ -1,7 +1,9 @@
 module Phone where
 
-import Data.List (elemIndex)
+--import Data.List (elemIndex)
+import Data.List (elemIndex, group, sort, sortBy)
 import Data.Char (toLower)
+import Data.Function (on)
 
 type Digit = Char
 type Values = [Char]
@@ -53,3 +55,16 @@ reverseTaps (DaPhone bs) c = concatMap findButton bs
             | elem c vs           = [(d, charIndex c vs)]
             | elem (toLower c) vs = ('*', 1) : [(d, charIndex (toLower c) vs)]
             | otherwise           = []
+
+cellPhonesDead :: DaPhone -> String -> [(Digit, Presses)]
+cellPhonesDead ph s = concatMap (reverseTaps ph) s
+
+fingerTaps :: [(Digit, Presses)] -> Presses
+fingerTaps [] = 0
+fingerTaps ((_,p):xs) = p + fingerTaps xs
+
+mostPopularLetter :: String -> (Char, Int)
+mostPopularLetter s = head $ sortBy (flip (compare `on` snd)) counts
+    where
+        grps = (group . sort) s
+        counts = map (\x -> (head x, length x)) grps
