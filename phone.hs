@@ -68,3 +68,6 @@ mostPopularLetter s = head $ sortBy (flip (compare `on` snd)) counts
     where
         grps = (group . sort) s
         counts = map (\x -> (head x, length x)) grps
+
+mostPopularLetterCost :: DaPhone -> (Char, Int) -> Presses
+mostPopularLetterCost ph (c, n) = n * (fingerTaps $ reverseTaps ph c)
