@@ -1,6 +1,5 @@
 module Phone where
 
---import Data.List (elemIndex)
 import Data.List (elemIndex, group, sort, sortBy)
 import Data.Char (toLower)
 import Data.Function (on)
@@ -42,6 +41,9 @@ convo = [ "Wanna play 20 questions"
         , "Just making sure rofl ur turn"
         ]
 
+sortedGroups :: Ord a => [a] -> [[a]]
+sortedGroups = (sortBy ((flip compare) `on` length)) . group . sort
+
 -- Assuming the default phone configuration
 -- 'a' -> [('2', 1)]
 -- 'A' -> [('*', 1), ('2', 1)]
@@ -51,7 +53,7 @@ reverseTaps (DaPhone bs) c = concatMap findButton bs
         charIndex c' cs = case elemIndex c' cs of
             Just i  -> i + 1
             Nothing -> 0
-        findButton bt@(Button d vs)
+        findButton (Button d vs)
             | elem c vs           = [(d, charIndex c vs)]
             | elem (toLower c) vs = ('*', 1) : [(d, charIndex (toLower c) vs)]
             | otherwise           = []
@@ -60,14 +62,37 @@ cellPhonesDead :: DaPhone -> String -> [(Digit, Presses)]
 cellPhonesDead ph s = concatMap (reverseTaps ph) s
 
 fingerTaps :: [(Digit, Presses)] -> Presses
-fingerTaps [] = 0
+fingerTaps []         = 0
 fingerTaps ((_,p):xs) = p + fingerTaps xs
 
-mostPopularLetter :: String -> (Char, Int)
-mostPopularLetter s = head $ sortBy (flip (compare `on` snd)) counts
-    where
-        grps = (group . sort) s
-        counts = map (\x -> (head x, length x)) grps
+-- This type signature matches the one provided in the book
+mostPopularLetter :: String -> Char
+mostPopularLetter s = (head . head . sortedGroups) s
 
-mostPopularLetterCost :: DaPhone -> (Char, Int) -> Presses
-mostPopularLetterCost ph (c, n) = n * (fingerTaps $ reverseTaps ph c)
+mostPopularLetterCost :: DaPhone -> String -> Presses
+mostPopularLetterCost ph s = appearances * letterCost
+    where
+        letter      = mostPopularLetter s
+        letterCost  = fingerTaps (reverseTaps ph letter)
+        appearances = length (filter (== letter) s)
+
+-- This is an alternative approach that shifts letter quantity
+-- functionality from mostPopularLetterCount to mostPopularLetter
+mostPopularLetter' :: String -> (Char, Int)
+mostPopularLetter' s = (head . (map pair) . sortedGroups) s
+    where
+        pair x = (head x, length x)
+
+mostPopularLetterCost' :: DaPhone -> String -> Presses
+mostPopularLetterCost' ph s = n * letterCost
+    where
+        (c, n)     = mostPopularLetter' s
+        letterCost = fingerTaps (reverseTaps ph c)
+
+coolestLtr :: [String] -> Char
+coolestLtr = mostPopularLetter . concat
+
+coolestWord :: [String] -> String
+coolestWord ss = (head . head) sorted
+    where
+        sorted = (sortedGroups . concat . (map words)) ss
