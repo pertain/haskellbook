@@ -41,6 +41,8 @@ convo = [ "Wanna play 20 questions"
         , "Just making sure rofl ur turn"
         ]
 
+-- sorts and groups like-elements
+-- e.g. "tacocat" -> ["aa","cc","tt","o"]
 sortedGroups :: Ord a => [a] -> [[a]]
 sortedGroups = (sortBy ((flip compare) `on` length)) . group . sort
 
