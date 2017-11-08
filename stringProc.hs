@@ -34,6 +34,23 @@ countTheBeforeVowel = next . words
 -- 3) Return the number of vowels in a word.
 countVowels :: String -> Integer
 countVowels [] = 0
-countVowels (x:xs) = case elem x "aeiouy" of
+countVowels (x:xs) = case elem (toLower x) "aeiouy" of
     True -> 1 + countVowels xs
     _    -> countVowels xs
+
+
+-- Validate the Word exercises
+
+newtype Word' = Word' String
+    deriving (Eq, Show)
+
+vowels :: String
+vowels = "aeiouy"
+
+mkWord :: String -> Maybe Word'
+mkWord s = case cc >= vc of
+    True -> Just (Word' s)
+    _    -> Nothing
+    where
+        vc = length $ filter (flip elem vowels) s
+        cc = length s - vc
