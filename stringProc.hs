@@ -2,9 +2,9 @@
 
 import Data.Char (toLower)
 
--- 1) Write a recursive function named replaceThe which takes a text/string,
---    breaks it into words, and replaces each instance of "the" with "a".
---    It's intended to replace only the word "the".
+-- 1) Write a recursive function named replaceThe which takes a
+--    text/string, breaks it into words, and replaces each instance
+--    of "the" with "a". It's intended to replace only the word "the".
 replaceThe :: String -> String
 replaceThe = unwords . swap . words
     where
@@ -54,3 +54,21 @@ mkWord s = case cc >= vc of
     where
         vc = length $ filter (flip elem vowels) s
         cc = length s - vc
+
+
+-- It's Only Natural
+
+data Nat = Zero | Succ Nat
+    deriving (Eq, Show)
+
+natToInteger :: Nat -> Integer
+natToInteger Zero     = 0
+natToInteger (Succ n) = 1 + natToInteger n
+
+integerToNat :: Integer -> Maybe Nat
+integerToNat i = case i >= 0 of
+    True -> Just (iToN i)
+    _    -> Nothing
+    where
+        iToN 0  = Zero
+        iToN i' = Succ (iToN (i' - 1))
