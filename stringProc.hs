@@ -8,6 +8,7 @@ import Data.Char (toLower)
 replaceThe :: String -> String
 replaceThe = unwords . swap . words
     where
+        swap :: [String] -> [String]
         swap []         = []
         swap ("the":xs) = "a" : swap xs
         swap (x:xs)     = x : swap xs
@@ -26,6 +27,7 @@ beginsWithVowel (x:_) = case elem (toLower x) "aeiouy" of
 countTheBeforeVowel :: String -> Integer
 countTheBeforeVowel = next . words
     where
+        next :: [String] -> Integer
         next []           = 0
         next ("the":x:xs) = beginsWithVowel x + next xs
         next (_:xs)       = next xs
@@ -70,5 +72,6 @@ integerToNat i = case i >= 0 of
     True -> Just (iToN i)
     _    -> Nothing
     where
+        iToN :: Integer -> Nat
         iToN 0  = Zero
         iToN i' = Succ (iToN (i' - 1))

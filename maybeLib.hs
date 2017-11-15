@@ -39,7 +39,8 @@ catMaybes ((Just x):xs) = x : catMaybes xs
 flipMaybe :: Eq a => [Maybe a] -> Maybe [a]
 flipMaybe ms = case elem Nothing ms of
     True -> Nothing
-    _    -> Just (flipMaybe' ms)
+    _    -> Just (go ms)
     where
-        flipMaybe' [] = []
-        flipMaybe' ((Just x):xs) = x : flipMaybe' xs
+        go :: [Maybe a] -> [a]
+        go []            = []
+        go ((Just x):xs) = x : go xs
