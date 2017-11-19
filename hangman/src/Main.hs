@@ -1,7 +1,7 @@
 module Main where
 
 import Control.Monad (forever)
-import Data.Char (toLower, toUpper)
+import Data.Char (toLower, toUpper, isUpper)
 import Data.Maybe (isJust, fromJust)
 import Data.List (intersperse)
 import System.Exit (exitSuccess)
@@ -15,37 +15,32 @@ instance Show Puzzle where
             fmap renderPuzzleChar discovered)
         ++ "  Guesses: " ++ guessed
 
---type WordList = [String]
 newtype WordList = WordList [String]
     deriving (Eq, Show)
 
 minLen :: Int
 minLen = 5
---minLen = 1
 
 maxLen :: Int
 maxLen = 9
---maxLen = 1
 
 allWords :: IO WordList
 allWords = do
     dict <- readFile "data/dict.txt"
-    --return (lines dict)
     return $ WordList (lines dict)
 
 gameWords :: IO WordList
 gameWords = do
-    --aw <- allWords
-    --return (filter gameLength aw)
     (WordList aw) <- allWords
     return $ WordList (filter gameLength aw)
     where
         gameLength w =
-            let l = length (w :: String)
-            in l >= minLen && l <= maxLen
+            let
+                l = length (w :: String)
+            in
+                l >= minLen && l <= maxLen
 
 randWord :: WordList -> IO String
---randWord wl = do
 randWord (WordList wl) = do
     randIndex <- randomRIO (0, (length wl) - 1)
     return (wl !! randIndex)
@@ -82,10 +77,11 @@ handleGuess puzzle guess = do
             return puzzle
         (True,_) -> do
             putStrLn "Yes!\n"
+            -- Lowercase letters here represent correct guesses
             return (fillInChar puzzle guess)
         (False,_) -> do
             putStrLn "No!\n"
-            --return (fillInChar puzzle guess)
+            -- Uppercase letters here represent incorrect guesses
             return (fillInChar puzzle (toUpper guess))
 
 gameOver :: Puzzle -> IO ()
@@ -97,9 +93,7 @@ gameOver (Puzzle w cur cs) =
             exitSuccess
     else return ()
         where
-            filled = length $ filter (isJust) cur
-            guessCount = length cs
-            misses = guessCount - filled
+            misses = length $ filter (isUpper) cs
 
 gameWin :: Puzzle -> IO ()
 gameWin (Puzzle w cur _) =
