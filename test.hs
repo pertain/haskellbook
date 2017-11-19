@@ -1,5 +1,14 @@
 -- test.hs
 
+import System.IO
+
+main :: IO ()
+main = do
+    hSetBuffering stdout NoBuffering -- This forces the putStr immediately
+    putStr "What's your name? "
+    name <- getLine
+    sayHello name
+
 sayHello :: String -> IO ()
 sayHello x = putStrLn ("Hello, " ++ x ++ "!!")
 
