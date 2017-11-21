@@ -27,3 +27,10 @@ hangman/data/*
 !hangman/src
 hangman/src/*
 !hangman/src/*.hs
+
+# ---------------------------------
+# Include addition project
+# ---------------------------------
+!addition
+addition/*
+!addition/*.hs
