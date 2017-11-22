@@ -1,4 +1,4 @@
--- Addition.hs
+-- Addition.hs (ch 14)
 
 module Addition where
 
