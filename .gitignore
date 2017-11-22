@@ -34,3 +34,15 @@ hangman/src/*
 !addition
 addition/*
 !addition/*.hs
+
+# ---------------------------------
+# Include morse project
+# ---------------------------------
+!morse
+morse/*
+!morse/src
+!morse/tests
+morse/src/*
+morse/tests/*
+!morse/src/*.hs
+!morse/tests/*.hs
