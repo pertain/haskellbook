@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+
 -- Testing properties with QuickCheck -- end of chapter exercises (ch 14)
 
 import Test.QuickCheck
@@ -10,11 +12,14 @@ half :: Fractional a => a -> a
 half = (/ 2)
 
 -- This property should hold
-halfIdentity :: Double -> Double
+halfIdentity :: Fractional a => a -> a
 halfIdentity = (* 2) . half
 
-prop_doubleThenHalve :: Double -> Bool
+prop_doubleThenHalve :: (Fractional a, Eq a) => a -> Bool
 prop_doubleThenHalve x = x == halfIdentity x
+
+-- Test the property with Double
+type DoubleHalveDouble = Double -> Bool
 
 
 -- 02) For any list you apply sort to,
@@ -27,37 +32,40 @@ listOrdered xs =
             go y (Nothing, t) = (Just y, t)
             go y (Just x, _) = (Just y, x >= y)
 
-prop_sortedIsSorted :: [Int] -> Bool
-prop_sortedIsSorted xs = listOrdered (sort xs) == True
+prop_sortedIsSorted :: Ord a => [a] -> Bool
+prop_sortedIsSorted = listOrdered . sort
+
+-- Test the property with Int
+type SortedIsSortedInt = [Int] -> Bool
 
 
 -- 03) These properties will not hold for floating point numbers
 --     Test Associative and Commutative properties of addition
-plusAssociative :: (Eq a, Num a) => a -> a -> a -> Bool
-plusAssociative x y z = x + (y + z) == (x + y) + z
+prop_assocAdd :: (Eq a, Num a) => a -> a -> a -> Bool
+prop_assocAdd x y z = x + (y + z) == (x + y) + z
 
-prop_associativeAddition :: Int -> Int -> Int -> Bool
-prop_associativeAddition x y z = plusAssociative x y z == True
+-- Test the property with Int
+type AssocAddInt = Int -> Int -> Int -> Bool
 
-plusCommutative :: (Eq a, Num a) => a -> a -> Bool
-plusCommutative x y = x + y == y + x
+prop_commuteAdd :: (Eq a, Num a) => a -> a -> Bool
+prop_commuteAdd x y = x + y == y + x
 
-prop_commutativeAddition :: Int -> Int -> Bool
-prop_commutativeAddition x y = plusCommutative x y == True
+-- Test the property with Int
+type CommuteAddInt = Int -> Int -> Bool
 
 
 -- 04) Now do the same for multiplication
-multAssociative :: (Eq a, Num a) => a -> a -> a -> Bool
-multAssociative x y z = x * (y * z) == (x * y) * z
+prop_assocMult :: (Eq a, Num a) => a -> a -> a -> Bool
+prop_assocMult x y z = x * (y * z) == (x * y) * z
 
-prop_associativeMultiplication :: Int -> Int -> Int -> Bool
-prop_associativeMultiplication x y z = multAssociative x y z == True
+-- Test the property with Int
+type AssocMultInt = Int -> Int -> Int -> Bool
 
-multCommutative :: (Eq a, Num a) => a -> a -> Bool
-multCommutative x y = x * y == y * x
+prop_commuteMult :: (Eq a, Num a) => a -> a -> Bool
+prop_commuteMult x y = x * y == y * x
 
-prop_commutativeMultiplication :: Int -> Int -> Bool
-prop_commutativeMultiplication x y = multCommutative x y == True
+-- Test the property with Int
+type CommuteMultInt = Int -> Int -> Bool
 
 
 -- 05) There are some laws involving the relationship of
@@ -69,8 +77,8 @@ quotRemLaw x y = (quot x y) * y + (rem x y) == x
 divModLaw :: Integral a => a -> a -> Bool
 divModLaw x y = (div x y) * y + (mod x y) == x
 
--- generate numerator and denominator values
--- but exclude denominators of 0
+-- generate Int values for numerator and denominator,
+-- but exclude 0 in denominators
 intNumerDenomGen :: Gen (Int, Int)
 intNumerDenomGen = do
     a <- arbitrary
@@ -85,99 +93,122 @@ prop_noZeroDenoms =
 prop_quotRemLaw :: Property
 prop_quotRemLaw =
     forAll intNumerDenomGen
-    (\(x, y) -> quotRemLaw x y == True)
+    (uncurry quotRemLaw)
 
 prop_divModLaw :: Property
 prop_divModLaw =
     forAll intNumerDenomGen
-    (\(x, y) -> divModLaw x y == True)
+    (uncurry divModLaw)
 
 -- 06) Is (^) associative? Is it commutative?
 --     Use QuickCheck to see if the computer
 --     can contradict such an assertion.
-expAssociative :: Integral a => a -> a -> a -> Bool
-expAssociative x y z = x ^ (y ^ z) == (x ^ y) ^ z
+prop_assocExp :: Integral a => a -> a -> a -> Bool
+prop_assocExp x y z = x ^ (y ^ z) == (x ^ y) ^ z
 
-prop_associativeExponentiation :: Int -> Int -> Int -> Bool
-prop_associativeExponentiation x y z = expAssociative x y z == True
+-- Test the property with Int
+type AssocExpInt = Int -> Int -> Int -> Bool
 
-expCommutative :: Integral a => a -> a -> Bool
-expCommutative x y = x ^ y == y ^ x
+prop_commuteExp :: Integral a => a -> a -> Bool
+prop_commuteExp x y = x ^ y == y ^ x
 
-prop_commutativeExponentiation :: Int -> Int -> Bool
-prop_commutativeExponentiation x y = expCommutative x y == True
+-- Test the property with Int
+type CommuteExpInt = Int -> Int -> Bool
 
 
 -- 07) Test that reversing a list twice is the same as
 --     the identity of the list.
-revRevIsId :: Eq a => [a] -> Bool
-revRevIsId xs = (reverse . reverse) xs == id xs
+prop_revRevIsId :: Eq a => [a] -> Bool
+prop_revRevIsId xs = (reverse . reverse) xs == id xs
 
-prop_revRevIsId :: [Char] -> Bool
-prop_revRevIsId xs = revRevIsId xs == True
+-- Test the property with Char
+type RevRevIdChar = [Char] -> Bool
 
 
 -- 08) Write a property for the definition of ($)
 dollar :: Eq b => (a -> b) -> a -> Bool
-dollar f a = (f $ a) == f a
+dollar f x = (f $ x) == f x
 
 -- Uses QuickCheck's Function module to generate
 -- functions of type (Int -> Char)
-prop_dollar :: Int -> (Fun Int Char) -> Bool
-prop_dollar n (Fun _ f) = dollar f n == True
+prop_dollar :: Eq b => a -> Fun a b -> Bool
+prop_dollar x (apply -> f) = dollar f x
 
-dot :: Eq a1 => (b -> a1) -> (a2 -> b) -> a2 -> Bool
+-- Test the property with Int and (Int -> Char)
+type DollarProp = Int
+               -> Fun Int Char
+               -> Bool
+
+-- Write a property for the definition of (.)
+dot :: Eq c => (b -> c) -> (a -> b) -> a -> Bool
 dot f g x = (f . g) x == f (g x)
 
 -- Uses QuickCheck's Function module to generate
 -- functions of type (Char -> [Char]) and (Int -> Char)
-prop_dot :: Int -> (Fun Char [Char]) -> (Fun Int Char) -> Bool
-prop_dot n (Fun _ f) (Fun _ g) = dot f g n == True
+prop_dot :: Eq c => a -> Fun b c -> Fun a b -> Bool
+prop_dot x (apply -> f) (apply -> g) = dot f g x
+
+-- Test the property with Int, (Char -> [Char]), and (Int -> Char)
+type DotProp = Int
+            -> Fun Char [Char]
+            -> Fun Int Char
+            -> Bool
 
 
 -- 09) See if these two functions are equal:
 --      >> foldr (:) == (++)
 --      >> foldr (++) [] == concat
-prop_foldrAppend :: [Int] -> [Int] -> Bool
+prop_foldrAppend :: Eq a => [a] -> [a] -> Bool
 prop_foldrAppend xs ys = foldr (:) xs ys == xs ++ ys
 
-prop_foldrConcat :: [String] -> Bool
+-- Test the property with Int
+type FoldrAppendInt = [Int] -> [Int] -> Bool
+
+prop_foldrConcat :: (Traversable t, Eq a) => t [a] -> Bool
 prop_foldrConcat xs = foldr (++) [] xs == concat xs
+
+-- Test the property with String
+type FoldrConcatString = [String] -> Bool
 
 
 -- 10) Determine if this function is correct
 --      >> f n xs = length (take n xs) == n
-prop_lengthOfTake :: Int -> String -> Bool
+prop_lengthOfTake :: Int -> [a] -> Bool
 prop_lengthOfTake n xs = length (take n xs) == n
+
+-- Test the property with Char
+type LengthOfTakeChar = Int -> [Char] -> Bool
 
 
 -- 11) Compose read and show, then test it.
 --      >> f x = (read (show x)) == x
-prop_readShow :: Int -> Bool
+prop_readShow :: (Eq a, Show a, Read a) => a -> Bool
 prop_readShow x = (read (show x)) == x
+
+type ReadShowInt = Int -> Bool
     
 
 runQc :: IO ()
 runQc = do
     -- 01)
     putStrLn "\nprop_doubleThenHalve (Should Pass)"
-    quickCheck prop_doubleThenHalve
+    quickCheck (prop_doubleThenHalve :: DoubleHalveDouble)
 
     -- 02)
     putStrLn "\nprop_sortedIsSorted (Should Pass)"
-    quickCheck prop_sortedIsSorted
+    quickCheck (prop_sortedIsSorted :: SortedIsSortedInt)
 
     -- 03)
-    putStrLn "\nprop_associativeAddition (Should Pass)"
-    quickCheck prop_associativeAddition
-    putStrLn "\nprop_commutativeAddition (Should Pass)"
-    quickCheck prop_commutativeAddition
+    putStrLn "\nprop_assocAdd (Should Pass)"
+    quickCheck (prop_assocAdd :: AssocAddInt)
+    putStrLn "\nprop_commuteAdd (Should Pass)"
+    quickCheck (prop_commuteAdd :: CommuteAddInt)
 
     -- 04)
-    putStrLn "\nprop_associativeMultiplication (Should Pass)"
-    quickCheck prop_associativeMultiplication
-    putStrLn "\nprop_commutativeMultiplication (Should Pass)"
-    quickCheck prop_commutativeMultiplication
+    putStrLn "\nprop_assocMult (Should Pass)"
+    quickCheck (prop_assocMult :: AssocMultInt)
+    putStrLn "\nprop_commuteMult (Should Pass)"
+    quickCheck (prop_commuteMult :: CommuteMultInt)
 
     -- 05)
     putStrLn "\nprop_noZeroDenoms (Should Pass)"
@@ -188,31 +219,31 @@ runQc = do
     quickCheck prop_divModLaw
 
     -- 06) Exponentiation is neither associative nor commutative
-    putStrLn "\nprop_associativeExponentiation (Should Fail)"
-    quickCheck prop_associativeExponentiation
-    putStrLn "\nprop_commutativeExponentiation (Should Fail)"
-    quickCheck prop_commutativeExponentiation
+    putStrLn "\nprop_assocExp (Should Fail)"
+    quickCheck (prop_assocExp :: AssocExpInt)
+    putStrLn "\nprop_commuteExp (Should Fail)"
+    quickCheck (prop_commuteExp :: CommuteExpInt)
 
     -- 07)
     putStrLn "\nprop_revRevIsId (Should Pass)"
-    quickCheck prop_revRevIsId
+    quickCheck (prop_revRevIsId :: RevRevIdChar)
 
     -- 08)
     putStrLn "\nprop_dollar (Should Pass)"
-    quickCheck prop_dollar
+    quickCheck (prop_dollar :: DollarProp)
     putStrLn "\nprop_dot (Should Pass)"
-    quickCheck prop_dot
+    quickCheck (prop_dot :: DotProp)
 
     -- 09) foldr (:) is not synonymous with (++)
     putStrLn "\nprop_foldrAppend (Should Fail)"
-    quickCheck prop_foldrAppend
+    quickCheck (prop_foldrAppend :: FoldrAppendInt)
     putStrLn "\nprop_foldrConcat (Should Pass)"
-    quickCheck prop_foldrConcat
+    quickCheck (prop_foldrConcat :: FoldrConcatString)
 
     -- 10)
     putStrLn "\nprop_lengthOfTake (Should Fail)"
-    quickCheck prop_lengthOfTake
+    quickCheck (prop_lengthOfTake :: LengthOfTakeChar)
 
     -- 11)
     putStrLn "\nprop_readShow (Should Pass)"
-    quickCheck prop_readShow
+    quickCheck (prop_readShow :: ReadShowInt)
