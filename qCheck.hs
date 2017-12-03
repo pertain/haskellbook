@@ -1,8 +1,7 @@
-{-# LANGUAGE FlexibleInstances #-}
-
 -- Testing properties with QuickCheck -- end of chapter exercises (ch 14)
 
 import Test.QuickCheck
+import Test.QuickCheck.Function
 import Data.List (sort)
 
 
@@ -119,28 +118,21 @@ prop_revRevIsId xs = revRevIsId xs == True
 
 
 -- 08) Write a property for the definition of ($)
--- These Show instances are needed for CoArbitrary
-instance Show (Int -> Char) where
-    show _ = "Function: (Int -> Char)"
-
-instance Show (Char -> [Char]) where
-    show _ = "Function: (Char -> [Char])"
-
-dollar :: Eq a => (t -> a) -> t -> Bool
+dollar :: Eq b => (a -> b) -> a -> Bool
 dollar f a = (f $ a) == f a
 
--- Uses CoArbitrary to generate random functions
--- that fit the type signature (Int -> Char)
-prop_dollar :: (Int -> Char) -> Int -> Bool
-prop_dollar f a = dollar f a == True
+-- Uses QuickCheck's Function module to generate
+-- functions of type (Int -> Char)
+prop_dollar :: Int -> (Fun Int Char) -> Bool
+prop_dollar n (Fun _ f) = dollar f n == True
 
 dot :: Eq a1 => (b -> a1) -> (a2 -> b) -> a2 -> Bool
 dot f g x = (f . g) x == f (g x)
 
--- Uses CoArbitrary to generate random functions
--- that fit type signatures (Int -> Char) and (Char -> [Char])
-prop_dot :: (Char -> [Char]) -> (Int -> Char) -> Int -> Bool
-prop_dot f g x = dot f g x == True
+-- Uses QuickCheck's Function module to generate
+-- functions of type (Char -> [Char]) and (Int -> Char)
+prop_dot :: Int -> (Fun Char [Char]) -> (Fun Int Char) -> Bool
+prop_dot n (Fun _ f) (Fun _ g) = dot f g n == True
 
 
 -- 09) See if these two functions are equal:
@@ -168,42 +160,59 @@ prop_readShow x = (read (show x)) == x
 runQc :: IO ()
 runQc = do
     -- 01)
+    putStrLn "\nprop_doubleThenHalve (Should Pass)"
     quickCheck prop_doubleThenHalve
 
     -- 02)
+    putStrLn "\nprop_sortedIsSorted (Should Pass)"
     quickCheck prop_sortedIsSorted
 
     -- 03)
+    putStrLn "\nprop_associativeAddition (Should Pass)"
     quickCheck prop_associativeAddition
+    putStrLn "\nprop_commutativeAddition (Should Pass)"
     quickCheck prop_commutativeAddition
 
     -- 04)
+    putStrLn "\nprop_associativeMultiplication (Should Pass)"
     quickCheck prop_associativeMultiplication
+    putStrLn "\nprop_commutativeMultiplication (Should Pass)"
     quickCheck prop_commutativeMultiplication
 
     -- 05)
+    putStrLn "\nprop_noZeroDenoms (Should Pass)"
     quickCheck prop_noZeroDenoms
+    putStrLn "\nprop_quotRemLaw (Should Pass)"
     quickCheck prop_quotRemLaw
+    putStrLn "\nprop_divModLaw (Should Pass)"
     quickCheck prop_divModLaw
 
-    -- 06) Exponentiation is neither associative
-    --     nor commutative
-    quickCheck prop_associativeExponentiation   -- Should fail
-    quickCheck prop_commutativeExponentiation   -- Should fail
+    -- 06) Exponentiation is neither associative nor commutative
+    putStrLn "\nprop_associativeExponentiation (Should Fail)"
+    quickCheck prop_associativeExponentiation
+    putStrLn "\nprop_commutativeExponentiation (Should Fail)"
+    quickCheck prop_commutativeExponentiation
 
     -- 07)
+    putStrLn "\nprop_revRevIsId (Should Pass)"
     quickCheck prop_revRevIsId
 
     -- 08)
+    putStrLn "\nprop_dollar (Should Pass)"
     quickCheck prop_dollar
+    putStrLn "\nprop_dot (Should Pass)"
     quickCheck prop_dot
 
-    -- 09)
-    quickCheck prop_foldrAppend   -- Should fail
+    -- 09) foldr (:) is not synonymous with (++)
+    putStrLn "\nprop_foldrAppend (Should Fail)"
+    quickCheck prop_foldrAppend
+    putStrLn "\nprop_foldrConcat (Should Pass)"
     quickCheck prop_foldrConcat
 
     -- 10)
-    quickCheck prop_lengthOfTake    -- Should fail
+    putStrLn "\nprop_lengthOfTake (Should Fail)"
+    quickCheck prop_lengthOfTake
 
     -- 11)
+    putStrLn "\nprop_readShow (Should Pass)"
     quickCheck prop_readShow
