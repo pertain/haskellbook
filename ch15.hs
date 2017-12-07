@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+
 -- End of chapter exercises (ch 15)
 
 
@@ -6,6 +8,7 @@
 --  Add semigroup constraints to type variables where needed.
 --  Validate all of the instances with QuickCheck.
 
+import Control.Monad
 import Data.Semigroup
 import Test.QuickCheck
 
@@ -40,10 +43,10 @@ instance Arbitrary a => Arbitrary (Identity a) where
         a <- arbitrary
         return (Identity a)
 
-type IdentAssoc = Identity Int
-               -> Identity Int
-               -> Identity Int
-               -> Bool
+type IdentAssocInt = Identity Int
+                  -> Identity Int
+                  -> Identity Int
+                  -> Bool
 
 -- 3)
 data Two a b = Two a b
@@ -59,10 +62,10 @@ instance (Arbitrary a, Arbitrary b)
         b <- arbitrary
         return (Two a b)
 
-type TwoAssoc = Two Int String
-             -> Two Int String
-             -> Two Int String
-             -> Bool
+type TwoAssocIntString = Two Int String
+                      -> Two Int String
+                      -> Two Int String
+                      -> Bool
 
 -- 4)
 data Three a b c = Three a b c
@@ -79,10 +82,10 @@ instance (Arbitrary a, Arbitrary b, Arbitrary c)
         c <- arbitrary
         return (Three a b c)
 
-type ThreeAssoc = Three Int Char String
-               -> Three Int Char String
-               -> Three Int Char String
-               -> Bool
+type ThreeAssocIntCharString = Three Int Char String
+                            -> Three Int Char String
+                            -> Three Int Char String
+                            -> Bool
 
 -- 5)
 data Four a b c d = Four a b c d
@@ -100,10 +103,10 @@ instance (Arbitrary a, Arbitrary b, Arbitrary c, Arbitrary d)
         d <- arbitrary
         return (Four a b c d)
 
-type FourAssoc = Four Int Char Bool String
-              -> Four Int Char Bool String
-              -> Four Int Char Bool String
-              -> Bool
+type FourAssocIntCharBoolString = Four Int Char Bool String
+                               -> Four Int Char Bool String
+                               -> Four Int Char Bool String
+                               -> Bool
 
 
 -- 6)
@@ -144,12 +147,89 @@ type BoolDisjAssoc = BoolDisj
                   -> Bool
 
 
+-- 8)
+data Or a b = Fst a | Snd b
+    deriving (Eq, Show)
+
+instance Semigroup (Or a b) where
+    x@(Snd _) <> _ = x
+    _ <> x = x
+
+instance (Arbitrary a, Arbitrary b) => Arbitrary (Or a b) where
+    arbitrary = do
+        a <- arbitrary
+        b <- arbitrary
+        oneof [ (return $ Fst a)
+              , (return $ Snd b) ]
+
+type OrAssocIntBool = Or Int Bool
+                   -> Or Int Bool
+                   -> Or Int Bool
+                   -> Bool
+
+
+-- 9)
+newtype Combine a b = Combine { unCombine :: (a -> b) }
+
+-- Generic Show instance for function (a -> b)
+instance (Show a, Show b) => Show (Combine a b) where
+    show _ = "function: (Combine a b)"
+
+instance Semigroup b => Semigroup (Combine a b) where
+    (Combine f) <> (Combine g) = Combine (f <> g)
+
+instance (CoArbitrary a, Arbitrary b) => Arbitrary (Combine a b) where
+    --arbitrary = do
+        --f <- arbitrary
+        --return $ Combine f
+    arbitrary = liftM Combine arbitrary
+
+prop_combAssoc :: (Integral a, Eq b, Semigroup b) => Combine a b
+                                                  -> Combine a b
+                                                  -> Combine a b
+                                                  -> a
+                                                  -> Bool
+prop_combAssoc f g h n =
+    unCombine (f <> (g <> h)) (n) == unCombine ((f <> g) <> h) (n)
+
+type CombAssocIntSumInt = Combine Int (Sum Int)
+                       -> Combine Int (Sum Int)
+                       -> Combine Int (Sum Int)
+                       -> Int
+                       -> Bool
+
+type CombAssocIntListInt = Combine Int [Int]
+                        -> Combine Int [Int]
+                        -> Combine Int [Int]
+                        -> Int
+                        -> Bool
+
+type CombAssocIntListDouble = Combine Int [Double]
+                           -> Combine Int [Double]
+                           -> Combine Int [Double]
+                           -> Int
+                           -> Bool
+
+type CombAssocIntProductInt = Combine Int (Product Int)
+                           -> Combine Int (Product Int)
+                           -> Combine Int (Product Int)
+                           -> Int
+                           -> Bool
+
+
 main :: IO ()
 main = do
     quickCheck (semigroupAssoc :: TrivialAssoc)
-    quickCheck (semigroupAssoc :: IdentAssoc)
-    quickCheck (semigroupAssoc :: TwoAssoc)
-    quickCheck (semigroupAssoc :: ThreeAssoc)
-    quickCheck (semigroupAssoc :: FourAssoc)
+    quickCheck (semigroupAssoc :: IdentAssocInt)
+    quickCheck (semigroupAssoc :: TwoAssocIntString)
+    quickCheck (semigroupAssoc :: ThreeAssocIntCharString)
+    quickCheck (semigroupAssoc :: FourAssocIntCharBoolString)
     quickCheck (semigroupAssoc :: BoolConjAssoc)
     quickCheck (semigroupAssoc :: BoolDisjAssoc)
+    quickCheck (semigroupAssoc :: OrAssocIntBool)
+    -- 9)
+    --quickCheck (semigroupAssoc :: CombAssocIntSumInt)
+    quickCheck (prop_combAssoc :: CombAssocIntSumInt)
+    quickCheck (prop_combAssoc :: CombAssocIntListInt)
+    quickCheck (prop_combAssoc :: CombAssocIntListDouble)
+    quickCheck (prop_combAssoc :: CombAssocIntProductInt)
