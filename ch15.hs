@@ -172,7 +172,7 @@ type OrAssocIntBool = Or Int Bool
 newtype Combine a b = Combine { unCombine :: (a -> b) }
 
 -- Generic Show instance for function (a -> b)
-instance (Show a, Show b) => Show (Combine a b) where
+instance Show (Combine a b) where
     show _ = "function: (Combine a b)"
 
 instance Semigroup b => Semigroup (Combine a b) where
@@ -184,13 +184,14 @@ instance (CoArbitrary a, Arbitrary b) => Arbitrary (Combine a b) where
         --return $ Combine f
     arbitrary = liftM Combine arbitrary
 
-prop_combAssoc :: (Integral a, Eq b, Semigroup b) => Combine a b
-                                                  -> Combine a b
-                                                  -> Combine a b
-                                                  -> a
-                                                  -> Bool
-prop_combAssoc f g h n =
-    unCombine (f <> (g <> h)) (n) == unCombine ((f <> g) <> h) (n)
+--prop_combAssoc :: (Integral a, Eq b, Semigroup b) => Combine a b
+prop_combAssoc :: (Eq b, Semigroup b) => Combine a b
+                                      -> Combine a b
+                                      -> Combine a b
+                                      -> a
+                                      -> Bool
+prop_combAssoc f g h a =
+    unCombine (f <> (g <> h)) (a) == unCombine ((f <> g) <> h) (a)
 
 type CombAssocIntSumInt = Combine Int (Sum Int)
                        -> Combine Int (Sum Int)
@@ -216,9 +217,52 @@ type CombAssocIntProductInt = Combine Int (Product Int)
                            -> Int
                            -> Bool
 
+type CombAssocStringMaybeString = Combine String (Maybe String)
+                               -> Combine String (Maybe String)
+                               -> Combine String (Maybe String)
+                               -> String
+                               -> Bool
 
-main :: IO ()
-main = do
+
+-- 10)
+newtype Comp a = Comp { unComp :: (a -> a) }
+
+-- Generic Show instance for function (a -> b)
+instance Show (Comp a) where
+    show _ = "function: (Comp a)"
+
+instance Semigroup a => Semigroup (Comp a) where
+    (Comp f) <> (Comp g) = Comp (f <> g)
+
+instance (CoArbitrary a, Arbitrary a) => Arbitrary (Comp a) where
+    --arbitrary = do
+        --f <- arbitrary
+        --return $ Comp f
+    arbitrary = liftM Comp arbitrary
+
+prop_compAssoc :: (Eq a, Semigroup a) => Comp a
+                                      -> Comp a
+                                      -> Comp a
+                                      -> a
+                                      -> Bool
+prop_compAssoc f g h a =
+    unComp ((f <> g) <> h) (a) == unComp (f <> (g <> h)) (a)
+
+type CompAssocString = Comp String
+                    -> Comp String
+                    -> Comp String
+                    -> String
+                    -> Bool
+
+type CompAssocSumInt = Comp (Sum Int)
+                    -> Comp (Sum Int)
+                    -> Comp (Sum Int)
+                    -> Sum Int
+                    -> Bool
+
+
+runQc :: IO ()
+runQc = do
     quickCheck (semigroupAssoc :: TrivialAssoc)
     quickCheck (semigroupAssoc :: IdentAssocInt)
     quickCheck (semigroupAssoc :: TwoAssocIntString)
@@ -228,8 +272,18 @@ main = do
     quickCheck (semigroupAssoc :: BoolDisjAssoc)
     quickCheck (semigroupAssoc :: OrAssocIntBool)
     -- 9)
+    putStrLn "Combine a b"
     --quickCheck (semigroupAssoc :: CombAssocIntSumInt)
     quickCheck (prop_combAssoc :: CombAssocIntSumInt)
     quickCheck (prop_combAssoc :: CombAssocIntListInt)
     quickCheck (prop_combAssoc :: CombAssocIntListDouble)
     quickCheck (prop_combAssoc :: CombAssocIntProductInt)
+    quickCheck (prop_combAssoc :: CombAssocStringMaybeString)
+    -- 10)
+    putStrLn "Comp a"
+    quickCheck (prop_compAssoc :: CompAssocString)
+    quickCheck (prop_compAssoc :: CompAssocSumInt)
+
+main :: IO ()
+main = do
+    putStrLn "main"
