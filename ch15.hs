@@ -8,9 +8,9 @@
 --  Add semigroup constraints to type variables where needed.
 --  Validate all of the instances with QuickCheck.
 
-import Control.Monad
+import Control.Monad (liftM, liftM2, liftM3, liftM4)
 import Data.Semigroup
-import Test.QuickCheck
+import Test.QuickCheck hiding (Success, Failure)
 
 -- 1)
 data Trivial = Trivial
@@ -39,9 +39,11 @@ instance Semigroup (Identity a) where
     x <> _ = x
 
 instance Arbitrary a => Arbitrary (Identity a) where
-    arbitrary = do
-        a <- arbitrary
-        return (Identity a)
+    --arbitrary = do
+        --a <- arbitrary
+        --return (Identity a)
+    arbitrary =
+        liftM Identity arbitrary
 
 type IdentAssocInt = Identity Int
                   -> Identity Int
@@ -57,10 +59,12 @@ instance Semigroup (Two a b) where
 
 instance (Arbitrary a, Arbitrary b)
     => Arbitrary (Two a b) where
-    arbitrary = do
-        a <- arbitrary
-        b <- arbitrary
-        return (Two a b)
+    --arbitrary = do
+        --a <- arbitrary
+        --b <- arbitrary
+        --return (Two a b)
+    arbitrary =
+        liftM2 Two arbitrary arbitrary
 
 type TwoAssocIntString = Two Int String
                       -> Two Int String
@@ -76,11 +80,13 @@ instance Semigroup (Three a b c) where
 
 instance (Arbitrary a, Arbitrary b, Arbitrary c)
     => Arbitrary (Three a b c) where
-    arbitrary = do
-        a <- arbitrary
-        b <- arbitrary
-        c <- arbitrary
-        return (Three a b c)
+    --arbitrary = do
+        --a <- arbitrary
+        --b <- arbitrary
+        --c <- arbitrary
+        --return (Three a b c)
+    arbitrary =
+        liftM3 Three arbitrary arbitrary arbitrary
 
 type ThreeAssocIntCharString = Three Int Char String
                             -> Three Int Char String
@@ -96,12 +102,14 @@ instance Semigroup (Four a b c d) where
 
 instance (Arbitrary a, Arbitrary b, Arbitrary c, Arbitrary d)
     => Arbitrary (Four a b c d) where
-    arbitrary = do
-        a <- arbitrary
-        b <- arbitrary
-        c <- arbitrary
-        d <- arbitrary
-        return (Four a b c d)
+    --arbitrary = do
+        --a <- arbitrary
+        --b <- arbitrary
+        --c <- arbitrary
+        --d <- arbitrary
+        --return (Four a b c d)
+    arbitrary =
+        liftM4 Four arbitrary arbitrary arbitrary arbitrary
 
 type FourAssocIntCharBoolString = Four Int Char Bool String
                                -> Four Int Char Bool String
@@ -156,11 +164,14 @@ instance Semigroup (Or a b) where
     _ <> x = x
 
 instance (Arbitrary a, Arbitrary b) => Arbitrary (Or a b) where
-    arbitrary = do
-        a <- arbitrary
-        b <- arbitrary
-        oneof [ (return $ Fst a)
-              , (return $ Snd b) ]
+    --arbitrary = do
+        --a <- arbitrary
+        --b <- arbitrary
+        --oneof [ (return $ Fst a)
+              --, (return $ Snd b) ]
+    arbitrary =
+        oneof [ (liftM Fst arbitrary)
+              , (liftM Snd arbitrary) ]
 
 type OrAssocIntBool = Or Int Bool
                    -> Or Int Bool
@@ -261,15 +272,48 @@ type CompAssocSumInt = Comp (Sum Int)
                     -> Bool
 
 
+-- 11)
+data Validation a b = Failure a | Success b
+    deriving (Eq, Show)
+
+instance Semigroup a => Semigroup (Validation a b) where
+    x@(Success _) <> _ = x
+    _ <> x@(Success _) = x
+    Failure x <> Failure y = Failure (x <> y)
+
+instance (Arbitrary a, Arbitrary b) => Arbitrary (Validation a b) where
+    --arbitrary = do
+        --a <- arbitrary
+        --b <- arbitrary
+        --oneof [ (return $ Failure a)
+              --, (return $ Success b) ]
+    arbitrary =
+        oneof [ (liftM Failure arbitrary)
+              , (liftM Success arbitrary) ]
+
+type ValStringBool = Validation String Bool
+                  -> Validation String Bool
+                  -> Validation String Bool
+                  -> Bool
+
+
 runQc :: IO ()
 runQc = do
+    putStrLn "Trivial"
     quickCheck (semigroupAssoc :: TrivialAssoc)
+    putStrLn "Identity"
     quickCheck (semigroupAssoc :: IdentAssocInt)
+    putStrLn "Two a b"
     quickCheck (semigroupAssoc :: TwoAssocIntString)
+    putStrLn "Three a b c"
     quickCheck (semigroupAssoc :: ThreeAssocIntCharString)
+    putStrLn "Four a b c d"
     quickCheck (semigroupAssoc :: FourAssocIntCharBoolString)
+    putStrLn "BoolConj"
     quickCheck (semigroupAssoc :: BoolConjAssoc)
+    putStrLn "BoolDisj"
     quickCheck (semigroupAssoc :: BoolDisjAssoc)
+    putStrLn "Or a b"
     quickCheck (semigroupAssoc :: OrAssocIntBool)
     -- 9)
     putStrLn "Combine a b"
@@ -283,7 +327,19 @@ runQc = do
     putStrLn "Comp a"
     quickCheck (prop_compAssoc :: CompAssocString)
     quickCheck (prop_compAssoc :: CompAssocSumInt)
+    -- 11)
+    putStrLn "Validation a b"
+    quickCheck (semigroupAssoc :: ValStringBool)
 
+
+-- 11)
 main :: IO ()
 main = do
-    putStrLn "main"
+    let failure :: String -> Validation String Int
+        failure = Failure
+        success :: Int -> Validation String Int
+        success = Success
+    print $ success 1 <> failure "blah"
+    print $ failure "woot" <> failure "blah"
+    print $ success 1 <> success 2
+    print $ failure "woot" <> success 2
