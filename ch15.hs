@@ -2,15 +2,20 @@
 
 -- End of chapter exercises (ch 15)
 
-
--- Semigroup exercises
---  Given a datatype, implement the semigroup instance.
---  Add semigroup constraints to type variables where needed.
---  Validate all of the instances with QuickCheck.
-
 import Control.Monad (liftM, liftM2, liftM3, liftM4)
 import Data.Semigroup
 import Test.QuickCheck hiding (Success, Failure)
+
+
+------------------------
+-- Semigroup exercises
+------------------------
+-- Given a datatype, implement the Semigroup instance.
+-- Add Semigroup constraints to type variables where needed.
+-- Validate all of the instances with QuickCheck.
+
+semigroupAssoc :: (Eq m, Semigroup m) => m -> m -> m -> Bool
+semigroupAssoc x y z = (x <> (y <> z)) == ((x <> y) <> z)
 
 -- 1)
 data Trivial = Trivial
@@ -22,9 +27,6 @@ instance Semigroup Trivial where
 instance Arbitrary Trivial where
     arbitrary = return Trivial
 
-semigroupAssoc :: (Eq m, Semigroup m) => m -> m -> m -> Bool
-semigroupAssoc a b c = (a <> (b <> c)) == ((a <> b) <> c)
-
 type TrivialAssoc = Trivial
                  -> Trivial
                  -> Trivial
@@ -35,86 +37,103 @@ type TrivialAssoc = Trivial
 newtype Identity a = Identity a
     deriving (Eq, Show)
 
-instance Semigroup (Identity a) where
-    x <> _ = x
+instance Semigroup a => Semigroup (Identity a) where
+    Identity x <> Identity y = Identity (x <> y)
+    
 
 instance Arbitrary a => Arbitrary (Identity a) where
     --arbitrary = do
-        --a <- arbitrary
-        --return (Identity a)
+        --x <- arbitrary
+        --return (Identity x)
     arbitrary =
         liftM Identity arbitrary
 
-type IdentAssocInt = Identity Int
-                  -> Identity Int
-                  -> Identity Int
-                  -> Bool
+type IdentityAssocString = Identity String
+                        -> Identity String
+                        -> Identity String
+                        -> Bool
 
 -- 3)
 data Two a b = Two a b
     deriving (Eq, Show)
 
-instance Semigroup (Two a b) where
-    x <> _ = x
+instance (Semigroup a, Semigroup b) => Semigroup (Two a b) where
+    Two x y <> Two x' y' = Two (x <> x') (y <> y')
 
 instance (Arbitrary a, Arbitrary b)
     => Arbitrary (Two a b) where
     --arbitrary = do
-        --a <- arbitrary
-        --b <- arbitrary
-        --return (Two a b)
+        --x <- arbitrary
+        --y <- arbitrary
+        --return (Two x y)
     arbitrary =
         liftM2 Two arbitrary arbitrary
 
-type TwoAssocIntString = Two Int String
-                      -> Two Int String
-                      -> Two Int String
-                      -> Bool
+type TwoAssocStringString = Two String String
+                         -> Two String String
+                         -> Two String String
+                         -> Bool
 
 -- 4)
 data Three a b c = Three a b c
     deriving (Eq, Show)
 
-instance Semigroup (Three a b c) where
-    x <> _ = x
+instance (Semigroup a, Semigroup b, Semigroup c)
+    => Semigroup (Three a b c) where
+    Three x y z <> Three x' y' z' = Three (x <> x')
+                                          (y <> y')
+                                          (z <> z')
 
 instance (Arbitrary a, Arbitrary b, Arbitrary c)
     => Arbitrary (Three a b c) where
     --arbitrary = do
-        --a <- arbitrary
-        --b <- arbitrary
-        --c <- arbitrary
-        --return (Three a b c)
+        --x <- arbitrary
+        --y <- arbitrary
+        --z <- arbitrary
+        --return (Three x y z)
     arbitrary =
         liftM3 Three arbitrary arbitrary arbitrary
 
-type ThreeAssocIntCharString = Three Int Char String
-                            -> Three Int Char String
-                            -> Three Int Char String
+type ThreeAssocSumProdString = Three (Sum Int) (Product Int) String
+                            -> Three (Sum Int) (Product Int) String
+                            -> Three (Sum Int) (Product Int) String
                             -> Bool
 
 -- 5)
 data Four a b c d = Four a b c d
     deriving (Eq, Show)
 
-instance Semigroup (Four a b c d) where
-    x <> _ = x
+instance (Semigroup a, Semigroup b, Semigroup c, Semigroup d)
+    => Semigroup (Four a b c d) where
+    Four w x y z <> Four w' x' y' z' = Four (w <> w')
+                                            (x <> x')
+                                            (y <> y')
+                                            (z <> z')
 
 instance (Arbitrary a, Arbitrary b, Arbitrary c, Arbitrary d)
     => Arbitrary (Four a b c d) where
     --arbitrary = do
-        --a <- arbitrary
-        --b <- arbitrary
-        --c <- arbitrary
-        --d <- arbitrary
-        --return (Four a b c d)
+        --w <- arbitrary
+        --x <- arbitrary
+        --y <- arbitrary
+        --z <- arbitrary
+        --return (Four w x y z)
     arbitrary =
         liftM4 Four arbitrary arbitrary arbitrary arbitrary
 
-type FourAssocIntCharBoolString = Four Int Char Bool String
-                               -> Four Int Char Bool String
-                               -> Four Int Char Bool String
-                               -> Bool
+type FourAssocStringSumTwoString = Four String
+                                        (Sum Int)
+                                        (Two (Product Int) String)
+                                        String
+                                -> Four String
+                                        (Sum Int)
+                                        (Two (Product Int) String)
+                                        String
+                                -> Four String
+                                        (Sum Int)
+                                        (Two (Product Int) String)
+                                        String
+                                -> Bool
 
 
 -- 6)
@@ -165,10 +184,10 @@ instance Semigroup (Or a b) where
 
 instance (Arbitrary a, Arbitrary b) => Arbitrary (Or a b) where
     --arbitrary = do
-        --a <- arbitrary
-        --b <- arbitrary
-        --oneof [ (return $ Fst a)
-              --, (return $ Snd b) ]
+        --x <- arbitrary
+        --y <- arbitrary
+        --oneof [ (return $ Fst x)
+              --, (return $ Snd y) ]
     arbitrary =
         oneof [ (liftM Fst arbitrary)
               , (liftM Snd arbitrary) ]
@@ -187,7 +206,7 @@ instance Show (Combine a b) where
     show _ = "function: (Combine a b)"
 
 instance Semigroup b => Semigroup (Combine a b) where
-    (Combine f) <> (Combine g) = Combine (f <> g)
+    Combine f <> Combine g = Combine (f <> g)
 
 instance (CoArbitrary a, Arbitrary b) => Arbitrary (Combine a b) where
     --arbitrary = do
@@ -195,14 +214,13 @@ instance (CoArbitrary a, Arbitrary b) => Arbitrary (Combine a b) where
         --return $ Combine f
     arbitrary = liftM Combine arbitrary
 
---prop_combAssoc :: (Integral a, Eq b, Semigroup b) => Combine a b
-prop_combAssoc :: (Eq b, Semigroup b) => Combine a b
-                                      -> Combine a b
-                                      -> Combine a b
-                                      -> a
-                                      -> Bool
-prop_combAssoc f g h a =
-    unCombine (f <> (g <> h)) (a) == unCombine ((f <> g) <> h) (a)
+semigroupCombineAssoc :: (Eq b, Semigroup b) => Combine a b
+                                             -> Combine a b
+                                             -> Combine a b
+                                             -> a
+                                             -> Bool
+semigroupCombineAssoc f g h x =
+    unCombine (f <> (g <> h)) x == unCombine ((f <> g) <> h) x
 
 type CombAssocIntSumInt = Combine Int (Sum Int)
                        -> Combine Int (Sum Int)
@@ -243,7 +261,7 @@ instance Show (Comp a) where
     show _ = "function: (Comp a)"
 
 instance Semigroup a => Semigroup (Comp a) where
-    (Comp f) <> (Comp g) = Comp (f <> g)
+    Comp f <> Comp g = Comp (f <> g)
 
 instance (CoArbitrary a, Arbitrary a) => Arbitrary (Comp a) where
     --arbitrary = do
@@ -251,13 +269,13 @@ instance (CoArbitrary a, Arbitrary a) => Arbitrary (Comp a) where
         --return $ Comp f
     arbitrary = liftM Comp arbitrary
 
-prop_compAssoc :: (Eq a, Semigroup a) => Comp a
-                                      -> Comp a
-                                      -> Comp a
-                                      -> a
-                                      -> Bool
-prop_compAssoc f g h a =
-    unComp ((f <> g) <> h) (a) == unComp (f <> (g <> h)) (a)
+semigroupCompAssoc :: (Eq a, Semigroup a) => Comp a
+                                          -> Comp a
+                                          -> Comp a
+                                          -> a
+                                          -> Bool
+semigroupCompAssoc f g h x =
+    unComp ((f <> g) <> h) (x) == unComp (f <> (g <> h)) (x)
 
 type CompAssocString = Comp String
                     -> Comp String
@@ -283,10 +301,10 @@ instance Semigroup a => Semigroup (Validation a b) where
 
 instance (Arbitrary a, Arbitrary b) => Arbitrary (Validation a b) where
     --arbitrary = do
-        --a <- arbitrary
-        --b <- arbitrary
-        --oneof [ (return $ Failure a)
-              --, (return $ Success b) ]
+        --x <- arbitrary
+        --y <- arbitrary
+        --oneof [ (return $ Failure x)
+              --, (return $ Success y) ]
     arbitrary =
         oneof [ (liftM Failure arbitrary)
               , (liftM Success arbitrary) ]
@@ -297,44 +315,236 @@ type ValStringBool = Validation String Bool
                   -> Bool
 
 
+------------------------
+-- Monoid exercises
+------------------------
+-- Given a datatype, implement the Monoid instance
+-- Add Monoid constraints to type variables where needed.
+-- Validate all of the instances with QuickCheck.
+
+monoidLeftIdentity :: (Eq m, Monoid m) => m -> Bool
+monoidLeftIdentity x = mempty `mappend` x == x
+
+monoidRightIdentity :: (Eq m, Monoid m) => m -> Bool
+monoidRightIdentity x = x `mappend` mempty == x
+
+
+-- 1) Trivial
+instance Monoid Trivial where
+    mempty = Trivial
+    _ `mappend` _ = Trivial
+
+type TrivialIdentity = Trivial -> Bool
+
+
+-- 2) Identity a
+instance Monoid a => Monoid (Identity a) where
+    mempty = Identity mempty
+    Identity x `mappend` Identity y = Identity (x `mappend` y)
+
+type IdentityIdentityString = Identity String -> Bool
+
+
+-- 3) Two a b
+--    Three a b c
+--    Four a b c d
+instance (Monoid a, Monoid b) => Monoid (Two a b) where
+    mempty = Two mempty mempty
+    Two x y `mappend` Two x' y' = Two (x `mappend` x')
+                                      (y `mappend` y')
+
+type TwoIdentitySumString = Two (Sum Int) String -> Bool
+
+instance (Monoid a, Monoid b, Monoid c)
+    => Monoid (Three a b c) where
+    mempty = Three mempty mempty mempty
+    Three x y z `mappend` Three x' y' z' = Three (x `mappend` x')
+                                                 (y `mappend` y')
+                                                 (z `mappend` z')
+
+type ThreeIdentitySumSumProd
+    = Three (Sum Int) (Sum Int) (Product Int) -> Bool
+
+instance (Monoid a, Monoid b, Monoid c, Monoid d)
+    => Monoid (Four a b c d) where
+    mempty = Four mempty mempty mempty mempty
+    Four w x y z `mappend` Four w' x' y' z' = Four (w `mappend` w')
+                                                   (x `mappend` x')
+                                                   (y `mappend` y')
+                                                   (z `mappend` z')
+
+type FourIdentityStringStringSumSum
+    = Four String String (Sum Int) (Sum Int) -> Bool
+
+
+-- 4) BoolConj
+instance Monoid BoolConj where
+    mempty = BoolConj True
+    BoolConj True `mappend` BoolConj True = BoolConj True
+    _ `mappend` _ = BoolConj False
+
+type BoolConjIdentity = BoolConj -> Bool
+
+
+-- 5) BoolDisj
+instance Monoid BoolDisj where
+    mempty = BoolDisj False
+    BoolDisj False `mappend` BoolDisj False = BoolDisj False
+    _ `mappend` _ = BoolDisj True
+
+type BoolDisjIdentity = BoolDisj -> Bool
+
+
+-- 6) Combine a b
+instance Monoid b => Monoid (Combine a b) where
+    mempty = Combine mempty
+    Combine f `mappend` Combine g = Combine (f `mappend` g)
+
+monoidCombineLeftIdentity :: (Eq b, Monoid b) => Combine a b -> a -> Bool
+monoidCombineLeftIdentity f x =
+    unCombine (f `mappend` mempty) x == unCombine f x
+
+monoidCombineRightIdentity :: (Eq b, Monoid b) => Combine a b -> a -> Bool
+monoidCombineRightIdentity f x =
+    unCombine (mempty `mappend` f) x == unCombine f x
+
+type CombIdentityIntSum = Combine Int (Sum Int) -> Int -> Bool
+
+
+-- 7) Comp a
+instance Monoid a => Monoid (Comp a) where
+    mempty = Comp mempty
+    Comp f `mappend` Comp g = Comp (f `mappend` g)
+
+monoidCompLeftIdentity :: (Eq a, Monoid a) => Comp a -> a -> Bool
+monoidCompLeftIdentity f x =
+    unComp (f `mappend` mempty) x == unComp f x
+
+monoidCompRightIdentity :: (Eq a, Monoid a) => Comp a -> a -> Bool
+monoidCompRightIdentity f x =
+    unComp (mempty `mappend` f) x == unComp f x
+
+type CompIdentityProd = Comp (Product Int) -> Product Int -> Bool
+
+
+-- 8)
+newtype Mem s a = Mem { runMem :: s -> (a, s) }
+
+-- Generic Show instance for function (s -> (a, s))
+instance Show (Mem s a) where
+    show _ = "function: (Mem s a)"
+
+instance Monoid a => Monoid (Mem s a) where
+    mempty = Mem (\s -> (mempty, s))
+    Mem f `mappend` Mem g = Mem (go f g)
+        where
+            go f' g' x = (fst (f' x) `mappend` fst (g' x), snd (f' (snd (g' x))))
+
+instance (CoArbitrary s, Arbitrary s, Arbitrary a) => Arbitrary (Mem s a) where
+    --arbitrary = do
+        --f <- arbitrary
+        --return $ Combine f
+    arbitrary = liftM Mem arbitrary
+
+monoidMemAssoc :: (Eq s, Eq a, Monoid a) => Mem s a -> Mem s a -> Mem s a -> s -> Bool
+monoidMemAssoc f g h x =
+    runMem (f `mappend` (g `mappend` h)) x == runMem ((f `mappend` g) `mappend` h) x
+
+monoidMemLeftIdentity :: (Eq s, Eq a, Monoid a) => Mem s a -> s -> Bool
+monoidMemLeftIdentity f x =
+    runMem (f `mappend` mempty) x == runMem f x
+
+monoidMemRightIdentity :: (Eq s, Eq a, Monoid a) => Mem s a -> s -> Bool
+monoidMemRightIdentity f x =
+    runMem (mempty `mappend` f) x == runMem f x
+
+type MemAssocIntString = Mem Int String
+                      -> Mem Int String
+                      -> Mem Int String
+                      -> Int
+                      -> Bool
+
+type MemIdentityIntString = Mem Int String
+                         -> Int
+                         -> Bool
+
+fun' :: Mem Int String
+fun' = Mem $ \s -> ("hi", s + 1)
+
+
 runQc :: IO ()
 runQc = do
+    -- Semigroup
+    putStrLn "\nSemigroup"
+    putStrLn "-------------------------"
     putStrLn "Trivial"
     quickCheck (semigroupAssoc :: TrivialAssoc)
-    putStrLn "Identity"
-    quickCheck (semigroupAssoc :: IdentAssocInt)
+    putStrLn "Identity a"
+    quickCheck (semigroupAssoc :: IdentityAssocString)
     putStrLn "Two a b"
-    quickCheck (semigroupAssoc :: TwoAssocIntString)
+    quickCheck (semigroupAssoc :: TwoAssocStringString)
     putStrLn "Three a b c"
-    quickCheck (semigroupAssoc :: ThreeAssocIntCharString)
+    quickCheck (semigroupAssoc :: ThreeAssocSumProdString)
     putStrLn "Four a b c d"
-    quickCheck (semigroupAssoc :: FourAssocIntCharBoolString)
+    quickCheck (semigroupAssoc :: FourAssocStringSumTwoString)
     putStrLn "BoolConj"
     quickCheck (semigroupAssoc :: BoolConjAssoc)
     putStrLn "BoolDisj"
     quickCheck (semigroupAssoc :: BoolDisjAssoc)
     putStrLn "Or a b"
     quickCheck (semigroupAssoc :: OrAssocIntBool)
-    -- 9)
     putStrLn "Combine a b"
-    --quickCheck (semigroupAssoc :: CombAssocIntSumInt)
-    quickCheck (prop_combAssoc :: CombAssocIntSumInt)
-    quickCheck (prop_combAssoc :: CombAssocIntListInt)
-    quickCheck (prop_combAssoc :: CombAssocIntListDouble)
-    quickCheck (prop_combAssoc :: CombAssocIntProductInt)
-    quickCheck (prop_combAssoc :: CombAssocStringMaybeString)
-    -- 10)
+    quickCheck (semigroupCombineAssoc :: CombAssocIntSumInt)
+    quickCheck (semigroupCombineAssoc :: CombAssocIntListInt)
+    quickCheck (semigroupCombineAssoc :: CombAssocIntListDouble)
+    quickCheck (semigroupCombineAssoc :: CombAssocIntProductInt)
+    quickCheck (semigroupCombineAssoc :: CombAssocStringMaybeString)
     putStrLn "Comp a"
-    quickCheck (prop_compAssoc :: CompAssocString)
-    quickCheck (prop_compAssoc :: CompAssocSumInt)
-    -- 11)
+    quickCheck (semigroupCompAssoc :: CompAssocString)
+    quickCheck (semigroupCompAssoc :: CompAssocSumInt)
     putStrLn "Validation a b"
     quickCheck (semigroupAssoc :: ValStringBool)
 
+    -- Monoid
+    putStrLn "\nMonoid"
+    putStrLn "-------------------------"
+    putStrLn "Trivial"
+    quickCheck (monoidLeftIdentity :: TrivialIdentity)
+    quickCheck (monoidRightIdentity :: TrivialIdentity)
+    putStrLn "Identity a"
+    quickCheck (monoidLeftIdentity :: IdentityIdentityString)
+    quickCheck (monoidRightIdentity :: IdentityIdentityString)
+    putStrLn "Two a b"
+    quickCheck (monoidLeftIdentity :: TwoIdentitySumString)
+    quickCheck (monoidRightIdentity :: TwoIdentitySumString)
+    putStrLn "Three a b c"
+    quickCheck (monoidLeftIdentity :: ThreeIdentitySumSumProd)
+    quickCheck (monoidRightIdentity :: ThreeIdentitySumSumProd)
+    putStrLn "Four a b c d"
+    quickCheck (monoidLeftIdentity :: FourIdentityStringStringSumSum)
+    quickCheck (monoidRightIdentity :: FourIdentityStringStringSumSum)
+    putStrLn "BoolConj"
+    quickCheck (monoidLeftIdentity :: BoolConjIdentity)
+    quickCheck (monoidRightIdentity :: BoolConjIdentity)
+    putStrLn "BoolDisj"
+    quickCheck (monoidLeftIdentity :: BoolDisjIdentity)
+    quickCheck (monoidRightIdentity :: BoolDisjIdentity)
+    putStrLn "Combine a b"
+    quickCheck (monoidCombineLeftIdentity :: CombIdentityIntSum)
+    quickCheck (monoidCombineRightIdentity :: CombIdentityIntSum)
+    putStrLn "Comp a"
+    quickCheck (monoidCompLeftIdentity :: CompIdentityProd)
+    quickCheck (monoidCompRightIdentity :: CompIdentityProd)
+    putStrLn "Mem s a"
+    quickCheck (monoidMemAssoc :: MemAssocIntString)
+    quickCheck (monoidMemLeftIdentity :: MemIdentityIntString)
+    quickCheck (monoidMemRightIdentity :: MemIdentityIntString)
 
--- 11)
+
 main :: IO ()
 main = do
+    -- Semigroup (11)
+    putStrLn "\nSemigroup -- exercise 11"
     let failure :: String -> Validation String Int
         failure = Failure
         success :: Int -> Validation String Int
@@ -343,3 +553,13 @@ main = do
     print $ failure "woot" <> failure "blah"
     print $ success 1 <> success 2
     print $ failure "woot" <> success 2
+    -- Monoid (8)
+    putStrLn "\nMonoid -- exercise 8"
+    let rmzero = runMem mempty 0
+        rmleft = runMem (fun' `mappend` mempty) 0
+        rmright = runMem (mempty `mappend` fun') 0
+    print $ rmleft
+    print $ rmright
+    print (rmzero :: (String, Int))
+    print $ rmleft == runMem fun' 0
+    print $ rmright == runMem fun' 0
