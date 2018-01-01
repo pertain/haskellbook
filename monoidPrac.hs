@@ -1,6 +1,6 @@
 -- Monoid exercises (ch 15)
 
-import Control.Monad
+--import Control.Monad
 import Data.Monoid
 import Test.QuickCheck
 
@@ -98,7 +98,7 @@ instance Monoid (First' a) where
     mempty = First' Nada
     mappend x (First' Nada) = x
     mappend (First' Nada) x = x
-    mappend x y = x
+    mappend x _ = x
 
 firstMappend :: First' a -> First' a -> First' a
 firstMappend = mappend
