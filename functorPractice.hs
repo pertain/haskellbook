@@ -164,8 +164,55 @@ type FourCompose' = Four' Int (Maybe Char)
 data Trivial = Trivial
 
 
+-- Exercise: Possibly
+-- Write a Functor instance for Possibly
+-- (a datatype identical to Maybe)
+data Possibly a = LolNope | Yeppers a
+    deriving (Eq, Show)
+
+instance Functor Possibly where
+    fmap _ LolNope = LolNope
+    fmap f (Yeppers a) = Yeppers (f a)
+
+instance Arbitrary a => Arbitrary (Possibly a) where
+    arbitrary =
+        frequency [(1, return $ LolNope),
+                   (5, liftM Yeppers arbitrary)]
+
+type PossiblyIdentity = Possibly String -> Bool
+
+type PossiblyCompose' = Possibly Char
+                     -> Fun Char Int
+                     -> Fun Int Char
+                     -> Bool
+
+
+-- Exercise: Sum
+-- Write a Functor instance for Sum
+-- (a datatype identitycal to Either)
+data Sum a b = First a | Second b
+    deriving (Eq, Show)
+
+instance Functor (Sum a) where
+    fmap _ (First a) = First a
+    fmap f (Second b) = Second (f b)
+
+instance (Arbitrary a, Arbitrary b) => Arbitrary (Sum a b) where
+    arbitrary = do
+        frequency [(2, liftM First arbitrary),
+                   (5, liftM Second arbitrary)]
+
+type SumIdentity = Sum String Int -> Bool
+
+type SumCompose' = Sum Int (Maybe Char)
+                -> Fun (Maybe Char) Int
+                -> Fun Int (Maybe Char)
+                -> Bool
+
+
 runQc :: IO ()
 runQc = do
+    putStrLn "----------------------------"
     putStrLn "Identity a"
     quickCheck (functorIdentity :: IdentityIdentity)
     quickCheck (functorCompose' :: IdentityCompose)
@@ -187,3 +234,13 @@ runQc = do
     putStrLn "Four' a a a b"
     quickCheck (functorIdentity :: FourIdentity')
     quickCheck (functorCompose' :: FourCompose')
+    putStrLn "----------------------------"
+    putStrLn "Possibly a (Maybe clone)"
+    quickCheck (functorIdentity :: PossiblyIdentity)
+    --verboseCheck (functorIdentity :: PossiblyIdentity)
+    quickCheck (functorCompose' :: PossiblyCompose')
+    putStrLn "----------------------------"
+    putStrLn "Sum a b (Either clone)"
+    quickCheck (functorIdentity :: SumIdentity)
+    --verboseCheck (functorIdentity :: SumIdentity)
+    quickCheck (functorCompose' :: SumCompose')
