@@ -1,4 +1,4 @@
--- funcInst.hs
+-- functorPractice.hs
 
 -- Instances of Func exercises (ch 16)
 
@@ -189,7 +189,7 @@ type PossiblyCompose' = Possibly Char
 
 -- Exercise: Sum
 -- Write a Functor instance for Sum
--- (a datatype identitycal to Either)
+-- (a datatype identical to Either)
 data Sum a b = First a | Second b
     deriving (Eq, Show)
 
@@ -216,7 +216,7 @@ runQc = do
     putStrLn "Identity a"
     quickCheck (functorIdentity :: IdentityIdentity)
     quickCheck (functorCompose' :: IdentityCompose)
-    putStrLn "Pair a a"
+    putStrLn "Pair a"
     quickCheck (functorIdentity :: PairIdentity)
     quickCheck (functorCompose' :: PairCompose)
     putStrLn "Two a b"
@@ -225,22 +225,22 @@ runQc = do
     putStrLn "Three a b c"
     quickCheck (functorIdentity :: ThreeIdentity)
     quickCheck (functorCompose' :: ThreeCompose)
-    putStrLn "Three' a b b"
+    putStrLn "Three' a b"
     quickCheck (functorIdentity :: ThreeIdentity')
     quickCheck (functorCompose' :: ThreeCompose')
     putStrLn "Four a b c d"
     quickCheck (functorIdentity :: FourIdentity)
     quickCheck (functorCompose' :: FourCompose)
-    putStrLn "Four' a a a b"
+    putStrLn "Four' a b"
     quickCheck (functorIdentity :: FourIdentity')
     quickCheck (functorCompose' :: FourCompose')
     putStrLn "----------------------------"
-    putStrLn "Possibly a (Maybe clone)"
+    putStrLn "Possibly a (clone of Maybe)"
     quickCheck (functorIdentity :: PossiblyIdentity)
     --verboseCheck (functorIdentity :: PossiblyIdentity)
     quickCheck (functorCompose' :: PossiblyCompose')
     putStrLn "----------------------------"
-    putStrLn "Sum a b (Either clone)"
+    putStrLn "Sum a b (clone of Either)"
     quickCheck (functorIdentity :: SumIdentity)
     --verboseCheck (functorIdentity :: SumIdentity)
     quickCheck (functorCompose' :: SumCompose')
