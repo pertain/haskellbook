@@ -262,12 +262,19 @@ data LiftItOut f a = LiftItOut (f a)
 instance Functor f => Functor (LiftItOut f) where
     fmap f (LiftItOut fa) = LiftItOut (fmap f fa)
 
-instance Arbitrary a => Arbitrary (LiftItOut f a) where
-    --arbitrary = liftM LiftItOut arbitrary
-    arbitrary = undefined
-    --arbitrary = do
-        --a <- arbitrary
-        --return (LiftItOut (_ a))
+instance Arbitrary a => Arbitrary (LiftItOut Maybe a) where
+    --arbitrary = undefined
+    arbitrary = do
+        frequency [(1, return $ LiftItOut Nothing),
+                   (3, liftM LiftItOut (liftM Just arbitrary))]
+
+type LiftItOutIdentity = LiftItOut Maybe String
+                      -> Bool
+
+type LiftItOutCompose = LiftItOut Maybe Char
+                     -> Fun Char Int
+                     -> Fun Int Char
+                     -> Bool
 
 
 runQc :: IO ()
@@ -303,4 +310,7 @@ runQc = do
     putStrLn "3.4) Flip EvilGoateeConst a b"
     quickCheck (functorIdentity :: FlipEvilGoateeConstIdentity)
     quickCheck (functorCompose' :: FlipEvilGoateeConstCompose)
+    putStrLn "3.5) LiftItOut f a"
+    quickCheck (functorIdentity :: LiftItOutIdentity)
+    quickCheck (functorCompose' :: LiftItOutCompose)
     putStrLn "--------------------------------"
