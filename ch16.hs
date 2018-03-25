@@ -260,10 +260,9 @@ data LiftItOut f a = LiftItOut (f a)
     deriving (Eq, Show)
 
 instance Functor f => Functor (LiftItOut f) where
-    fmap g (LiftItOut fa) = LiftItOut (fmap g fa)
+    fmap f (LiftItOut fa) = LiftItOut (fmap f fa)
 
 instance Arbitrary a => Arbitrary (LiftItOut Maybe a) where
-    --arbitrary = undefined
     arbitrary = do
         frequency [(1, return $ LiftItOut Nothing),
                    (3, liftM LiftItOut (liftM Just arbitrary))]
@@ -280,16 +279,14 @@ type LiftItOutCompose = LiftItOut Maybe Char
 data Parappa f g a = DaWrappa (f a) (g a)
     deriving (Eq, Show)
 
-instance (Functor f, Functor f') => Functor (Parappa f f') where
-    fmap g (DaWrappa fa fa') = DaWrappa (fmap g fa) (fmap g fa')
+instance (Functor f, Functor g) => Functor (Parappa f g) where
+    fmap f (DaWrappa fa fa') = DaWrappa (fmap f fa) (fmap f fa')
 
 instance Arbitrary a => Arbitrary (Parappa Maybe [] a) where
     arbitrary = do
         a <- arbitrary
-        frequency [(1, return $ DaWrappa Nothing []),
-                   (1, return $ DaWrappa Nothing [a]),
-                   (1, return $ DaWrappa (Just a) []),
-                   (5, return $ DaWrappa (Just a) [a])]
+        frequency [(1, return $ DaWrappa Nothing [a]),
+                   (3, return $ DaWrappa (Just a) [a])]
 
 type ParappaIdentity = Parappa Maybe [] Char
                     -> Bool
@@ -298,6 +295,54 @@ type ParappaCompose = Parappa Maybe [] Char
                    -> Fun Char (Int,Char)
                    -> Fun (Int,Char) Char
                    -> Bool
+
+-- 3.7)
+data IgnoreOne f g a b = IgnoringSomething (f a) (g b)
+    deriving (Eq, Show)
+
+instance (Functor f, Functor g)
+    => Functor (IgnoreOne f g a) where
+    fmap f (IgnoringSomething fa gb)
+        = IgnoringSomething fa (fmap f gb)
+
+instance (Arbitrary a, Arbitrary b)
+    => Arbitrary (IgnoreOne [] Maybe a b) where
+    arbitrary = do
+    a <- arbitrary
+    b <- arbitrary
+    frequency [(1, return $ IgnoringSomething [a] Nothing),
+               (3, return $ IgnoringSomething [a] (Just b))]
+
+type IgnoreOneIdentity = IgnoreOne [] Maybe Int (Maybe String)
+                      -> Bool
+
+type IgnoreOneCompose = IgnoreOne [] Maybe Int (Either Int Char)
+                     -> Fun (Either Int Char) (Maybe Char)
+                     -> Fun (Maybe Char) (Either Int Char)
+                     -> Bool
+
+-- 3.8)
+data Notorious g o a t = Notorious (g o) (g a) (g t)
+    deriving (Eq, Show)
+
+instance Functor g => Functor (Notorious g o a) where
+    fmap f (Notorious go ga gt) = Notorious go ga (fmap f gt)
+
+instance (Arbitrary o, Arbitrary a, Arbitrary t)
+    => Arbitrary (Notorious [] o a t) where
+    arbitrary = do
+    o <- arbitrary
+    a <- arbitrary
+    t <- arbitrary
+    return $ Notorious [o] [a] [t]
+
+type NotoriousIdentity = Notorious [] String Int Char
+                      -> Bool
+
+type NotoriousCompose = Notorious [] Int Int (Maybe Char)
+                     -> Fun (Maybe Char) Char
+                     -> Fun Char (Maybe Char)
+                     -> Bool
 
 
 runQc :: IO ()
@@ -339,4 +384,10 @@ runQc = do
     putStrLn "3.6) Parappa f g a"
     quickCheck (functorIdentity :: ParappaIdentity)
     quickCheck (functorCompose' :: ParappaCompose)
+    putStrLn "3.7) IgnoreOne f g a b"
+    quickCheck (functorIdentity :: IgnoreOneIdentity)
+    quickCheck (functorCompose' :: IgnoreOneCompose)
+    putStrLn "3.8) Notorious g o a t"
+    quickCheck (functorIdentity :: NotoriousIdentity)
+    quickCheck (functorCompose' :: NotoriousCompose)
     putStrLn "--------------------------------"
