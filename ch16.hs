@@ -260,7 +260,7 @@ data LiftItOut f a = LiftItOut (f a)
     deriving (Eq, Show)
 
 instance Functor f => Functor (LiftItOut f) where
-    fmap f (LiftItOut fa) = LiftItOut (fmap f fa)
+    fmap g (LiftItOut fa) = LiftItOut (fmap g fa)
 
 instance Arbitrary a => Arbitrary (LiftItOut Maybe a) where
     --arbitrary = undefined
@@ -275,6 +275,29 @@ type LiftItOutCompose = LiftItOut Maybe Char
                      -> Fun Char Int
                      -> Fun Int Char
                      -> Bool
+
+-- 3.6)
+data Parappa f g a = DaWrappa (f a) (g a)
+    deriving (Eq, Show)
+
+instance (Functor f, Functor f') => Functor (Parappa f f') where
+    fmap g (DaWrappa fa fa') = DaWrappa (fmap g fa) (fmap g fa')
+
+instance Arbitrary a => Arbitrary (Parappa Maybe [] a) where
+    arbitrary = do
+        a <- arbitrary
+        frequency [(1, return $ DaWrappa Nothing []),
+                   (1, return $ DaWrappa Nothing [a]),
+                   (1, return $ DaWrappa (Just a) []),
+                   (5, return $ DaWrappa (Just a) [a])]
+
+type ParappaIdentity = Parappa Maybe [] Char
+                    -> Bool
+
+type ParappaCompose = Parappa Maybe [] Char
+                   -> Fun Char (Int,Char)
+                   -> Fun (Int,Char) Char
+                   -> Bool
 
 
 runQc :: IO ()
@@ -313,4 +336,7 @@ runQc = do
     putStrLn "3.5) LiftItOut f a"
     quickCheck (functorIdentity :: LiftItOutIdentity)
     quickCheck (functorCompose' :: LiftItOutCompose)
+    putStrLn "3.6) Parappa f g a"
+    quickCheck (functorIdentity :: ParappaIdentity)
+    quickCheck (functorCompose' :: ParappaCompose)
     putStrLn "--------------------------------"
