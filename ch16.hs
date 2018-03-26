@@ -407,6 +407,33 @@ type GoatLordCompose = GoatLord (Either Bool Int)
                     -> Fun Int (Either Bool Int)
                     -> Bool
 
+-- 3.11)
+instance Show (String -> a) where
+    show _ = "Function: (String -> a)"
+
+data TalkToMe a = Halt
+                | Print String a
+                | Read (String -> a)
+    deriving Show
+
+instance Functor TalkToMe where
+    fmap _ Halt = Halt
+    fmap f (Print s a) = Print s (f a)
+    fmap f (Read sa) = Read (fmap f sa)
+
+instance Arbitrary a => Arbitrary (TalkToMe a) where
+    arbitrary = do
+        a <- arbitrary
+        s <- arbitrary
+        frequency [(1, return $ Halt),
+                   (2, return $ Print s a)]
+
+-- Thinking about using the Arbitrary instance for
+-- validating Halt and Print, but a standalone set
+-- of props for validating identity/composition of Read
+--prop_Read :: TalkToMe (String -> Char) -> Bool
+--prop_Read (Read f)
+
 
 runQc :: IO ()
 runQc = do
