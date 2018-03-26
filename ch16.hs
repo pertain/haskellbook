@@ -367,6 +367,46 @@ type ListCompose = List [Int]
                 -> Fun (Maybe Char) [Int]
                 -> Bool
 
+-- 3.10)
+data GoatLord a = NoGoat
+                | OneGoat a
+                | MoreGoats (GoatLord a)
+                            (GoatLord a)
+                            (GoatLord a)
+    deriving (Eq, Show)
+
+instance Functor GoatLord where
+    fmap _ NoGoat = NoGoat
+    fmap f (OneGoat a) = OneGoat (f a)
+    fmap f (MoreGoats a1 a2 a3) = MoreGoats (fmap f a1)
+                                            (fmap f a2)
+                                            (fmap f a3)
+
+instance Arbitrary a => Arbitrary (GoatLord a) where
+    arbitrary = do
+        a <- arbitrary
+        frequency [(1, return $ NoGoat),
+                   (2, return $ OneGoat a),
+                   (3, return $ MoreGoats NoGoat
+                                          NoGoat
+                                          NoGoat),
+                   (3, return $ MoreGoats (OneGoat a)
+                                          (OneGoat a)
+                                          (OneGoat a)),
+                   (3, return $ MoreGoats NoGoat
+                                          (OneGoat a)
+                                          (MoreGoats (OneGoat a)
+                                                     NoGoat
+                                                     NoGoat))]
+
+type GoatLordIdentity = GoatLord String
+                     -> Bool
+
+type GoatLordCompose = GoatLord (Either Bool Int)
+                    -> Fun (Either Bool Int) Int
+                    -> Fun Int (Either Bool Int)
+                    -> Bool
+
 
 runQc :: IO ()
 runQc = do
@@ -416,4 +456,7 @@ runQc = do
     putStrLn "3.9) List a"
     quickCheck (functorIdentity :: ListIdentity)
     quickCheck (functorCompose' :: ListCompose)
+    putStrLn "3.10) GoatLord a"
+    quickCheck (functorIdentity :: GoatLordIdentity)
+    quickCheck (functorCompose' :: GoatLordCompose)
     putStrLn "--------------------------------"
