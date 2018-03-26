@@ -308,10 +308,10 @@ instance (Functor f, Functor g)
 instance (Arbitrary a, Arbitrary b)
     => Arbitrary (IgnoreOne [] Maybe a b) where
     arbitrary = do
-    a <- arbitrary
-    b <- arbitrary
-    frequency [(1, return $ IgnoringSomething [a] Nothing),
-               (3, return $ IgnoringSomething [a] (Just b))]
+        a <- arbitrary
+        b <- arbitrary
+        frequency [(1, return $ IgnoringSomething [a] Nothing),
+                   (3, return $ IgnoringSomething [a] (Just b))]
 
 type IgnoreOneIdentity = IgnoreOne [] Maybe Int (Maybe String)
                       -> Bool
@@ -331,10 +331,10 @@ instance Functor g => Functor (Notorious g o a) where
 instance (Arbitrary o, Arbitrary a, Arbitrary t)
     => Arbitrary (Notorious [] o a t) where
     arbitrary = do
-    o <- arbitrary
-    a <- arbitrary
-    t <- arbitrary
-    return $ Notorious [o] [a] [t]
+        o <- arbitrary
+        a <- arbitrary
+        t <- arbitrary
+        return $ Notorious [o] [a] [t]
 
 type NotoriousIdentity = Notorious [] String Int Char
                       -> Bool
@@ -343,6 +343,29 @@ type NotoriousCompose = Notorious [] Int Int (Maybe Char)
                      -> Fun (Maybe Char) Char
                      -> Fun Char (Maybe Char)
                      -> Bool
+
+-- 3.9)
+data List a = Nil | Cons a (List a)
+    deriving (Eq, Show)
+
+instance Functor List where
+    fmap _ Nil = Nil
+    fmap f (Cons a l) = Cons (f a) (fmap f l)
+
+instance Arbitrary a => Arbitrary (List a) where
+    arbitrary = do
+        a <- arbitrary
+        frequency [(1, return $ Nil),
+                   (2, return $ Cons a Nil),
+                   (3, return $ Cons a (Cons a Nil))]
+
+type ListIdentity = List (Either String Char)
+                 -> Bool
+
+type ListCompose = List [Int]
+                -> Fun [Int] (Maybe Char)
+                -> Fun (Maybe Char) [Int]
+                -> Bool
 
 
 runQc :: IO ()
@@ -390,4 +413,7 @@ runQc = do
     putStrLn "3.8) Notorious g o a t"
     quickCheck (functorIdentity :: NotoriousIdentity)
     quickCheck (functorCompose' :: NotoriousCompose)
+    putStrLn "3.9) List a"
+    quickCheck (functorIdentity :: ListIdentity)
+    quickCheck (functorCompose' :: ListCompose)
     putStrLn "--------------------------------"
