@@ -32,8 +32,8 @@ functorCompose' x (Fun _ f) (Fun _ g) =
 -- written for the datatype provided
 
 -- 1.1) No [kind: *]
-data Boolean =
-    False | True
+--data Boolean =
+    --False | True
 
 -- 1.2) Yes [kind: * -> *]
 data BoolAndSomethingElse a =
@@ -425,14 +425,36 @@ instance Arbitrary a => Arbitrary (TalkToMe a) where
     arbitrary = do
         a <- arbitrary
         s <- arbitrary
+        let f = (\s -> a)
         frequency [(1, return $ Halt),
-                   (2, return $ Print s a)]
+                   (2, return $ Print s a),
+                   (2, return $ Read f)]
 
--- Thinking about using the Arbitrary instance for
--- validating Halt and Print, but a standalone set
--- of props for validating identity/composition of Read
---prop_Read :: TalkToMe (String -> Char) -> Bool
---prop_Read (Read f)
+-- Working toward unique identity/compose functions
+-- for TalkToMe (to manage the Eq situation)
+--talkToMeIdentity :: Eq a => TalkToMe a -> Bool
+--talkToMeIdentity Halt = fmap id Halt == Halt
+
+{-- copied from top of file (for reference only)
+functorIdentity :: (Functor f, Eq (f a)) => f a -> Bool
+functorIdentity f = fmap id f == f
+
+functorCompose' :: (Eq (f c), Functor f) => f a
+                                         -> Fun a b
+                                         -> Fun b c
+                                         -> Bool
+functorCompose' x (Fun _ f) (Fun _ g) =
+    (fmap (g . f) x) == (fmap g . fmap f $ x)
+
+--}
+
+type TalkToMeIdentityInt = TalkToMe Int
+                        -> Bool
+
+type TalkToMeCompose = TalkToMe Char
+                    -> Fun Char (Either String Int)
+                    -> Fun (Either String Int) Char
+                    -> Bool
 
 
 runQc :: IO ()
@@ -486,4 +508,7 @@ runQc = do
     putStrLn "3.10) GoatLord a"
     quickCheck (functorIdentity :: GoatLordIdentity)
     quickCheck (functorCompose' :: GoatLordCompose)
+    --putStrLn "3.11) TalkToMe a"
+    --quickCheck (talkToMeIdentity :: TalkToMeIdentityInt)
+    --quickCheck (functorCompose' :: TalkToMeCompose)
     putStrLn "--------------------------------"
