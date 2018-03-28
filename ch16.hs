@@ -81,7 +81,8 @@ type BoolAndMaybeSomethingElseCompose = BoolAndMaybeSomethingElse Char
 
 
 -- 1.4) No [kind: (* -> *) -> *]
---      Even if we make f a Functor, we cannot make Mu a Functor,
+--      Even if we make f an instance of Functor, we
+--      cannot make Mu an instance of Functor. This is
 --      because we cannot partially apply f. And, a fully
 --      applied f () will result in a fully applied Mu
 newtype Mu f = InF { outF :: f (Mu f) }
@@ -408,13 +409,27 @@ type GoatLordCompose = GoatLord (Either Bool Int)
                     -> Bool
 
 -- 3.11)
-instance Show (String -> a) where
-    show _ = "Function: (String -> a)"
-
 data TalkToMe a = Halt
                 | Print String a
                 | Read (String -> a)
-    deriving Show
+
+instance Show a => Show (TalkToMe a) where
+    show Halt = "Halt"
+    show (Print s a) = "Print " ++ s ++ " " ++ (show a)
+    show (Read _) = "Read (String -> a)"
+
+-- A static String is needed here ("Holas") as the
+-- input to f (in Read f). This is necessary when
+-- creating the Eq instance for Read f.
+-- This Eq instance for function, f, is possible because
+-- the Arbitrary instance for Read f generates a
+-- static input String ("Holas") that matches the input
+-- string present in the Eq instance
+instance Eq a => Eq (TalkToMe a) where
+    (==) Halt Halt = True
+    (==) (Print s a) (Print s' a') = s == s' && a == a'
+    (==) (Read f) (Read f') = (f "Holas") == (f' "Holas")
+    (==) _ _ = False
 
 instance Functor TalkToMe where
     fmap _ Halt = Halt
@@ -425,31 +440,13 @@ instance Arbitrary a => Arbitrary (TalkToMe a) where
     arbitrary = do
         a <- arbitrary
         s <- arbitrary
-        let f = (\s -> a)
+        let f = (\"Holas" -> a)
         frequency [(1, return $ Halt),
                    (2, return $ Print s a),
                    (2, return $ Read f)]
 
--- Working toward unique identity/compose functions
--- for TalkToMe (to manage the Eq situation)
---talkToMeIdentity :: Eq a => TalkToMe a -> Bool
---talkToMeIdentity Halt = fmap id Halt == Halt
-
-{-- copied from top of file (for reference only)
-functorIdentity :: (Functor f, Eq (f a)) => f a -> Bool
-functorIdentity f = fmap id f == f
-
-functorCompose' :: (Eq (f c), Functor f) => f a
-                                         -> Fun a b
-                                         -> Fun b c
-                                         -> Bool
-functorCompose' x (Fun _ f) (Fun _ g) =
-    (fmap (g . f) x) == (fmap g . fmap f $ x)
-
---}
-
-type TalkToMeIdentityInt = TalkToMe Int
-                        -> Bool
+type TalkToMeIdentity = TalkToMe Int
+                     -> Bool
 
 type TalkToMeCompose = TalkToMe Char
                     -> Fun Char (Either String Int)
@@ -508,7 +505,7 @@ runQc = do
     putStrLn "3.10) GoatLord a"
     quickCheck (functorIdentity :: GoatLordIdentity)
     quickCheck (functorCompose' :: GoatLordCompose)
-    --putStrLn "3.11) TalkToMe a"
-    --quickCheck (talkToMeIdentity :: TalkToMeIdentityInt)
-    --quickCheck (functorCompose' :: TalkToMeCompose)
+    putStrLn "3.11) TalkToMe a"
+    quickCheck (functorIdentity :: TalkToMeIdentity)
+    quickCheck (functorCompose' :: TalkToMeCompose)
     putStrLn "--------------------------------"
