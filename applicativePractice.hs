@@ -91,3 +91,15 @@ instance Monoid a => Applicative (Constant a) where
     --(<*>) = undefined
     pure _ = Constant mempty
     Constant m <*> Constant m' = Constant (m <> m')
+
+
+-- Exercise: Fixer Upper
+--
+-- Given the function and values provided,
+-- use <$>, <*>, and pure to fix the broken code
+
+--const <$> Just "Hello" <*> "World"
+fixerUpper1 = const <$> Just "Hello" <*> pure "World"
+
+--(,,,) Just 90 <*> Just 10 Just "Tierness" [1,2,3]
+fixerUpper2 = (,,,) <$> Just 90 <*> Just 10 <*> Just "Tierness" <*> pure [1,2,3]
