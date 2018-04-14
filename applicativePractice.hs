@@ -6,7 +6,7 @@
 import Data.Monoid
 import Control.Monad (liftM2)
 import Data.List (elemIndex)
-import Test.QuickCheck hiding (Success, Failure)
+import Test.QuickCheck
 import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes
 
@@ -125,27 +125,27 @@ fixerUpper2 = (,,,) <$> Just 90 <*> Just 10 <*> Just "Tierness" <*> pure [1,2,3]
 --
 -- The Applicative instance should combine
 -- failures with the Monoid typeclass
-data Validation e a = Failure e | Success a
+data Validation e a = Failure' e | Success' a
     deriving (Eq, Show)
 
 -- same as Either
 instance Functor (Validation e) where
     --fmap f (Validation e a) = Validation e (f a)
-    fmap _ (Failure e) = Failure e
-    fmap f (Success a) = Success (f a)
+    fmap _ (Failure' e) = Failure' e
+    fmap f (Success' a) = Success' (f a)
 
 -- this is different
 instance Monoid e => Applicative (Validation e) where
-    pure a = Success a
-    (<*>) (Success f) (Success x) = Success (f x)
-    (<*>) (Failure me) (Failure me') = Failure (me <> me')
-    (<*>) (Failure me) _ = Failure me
-    (<*>) _ (Failure me) = Failure me
+    pure = Success'
+    (<*>) (Success' f) (Success' x) = Success' (f x)
+    (<*>) (Failure' e) (Failure' e') = Failure' (e <> e')
+    (<*>) (Failure' e) _ = Failure' e
+    (<*>) _ (Failure' e) = Failure' e
 
-instance (Arbitrary a, Arbitrary e, Monoid e)
+instance (Arbitrary a, Arbitrary e)
     => Arbitrary (Validation e a) where
-    arbitrary = frequency [(2, Failure <$> arbitrary),
-                           (3, Success <$> arbitrary)]
+    arbitrary = frequency [(3, Failure' <$> arbitrary),
+                           (1, Success' <$> arbitrary)]
 
 instance (Eq e, Eq a) => EqProp (Validation e a) where
     (=-=) = eq
