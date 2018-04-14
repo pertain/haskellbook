@@ -1,6 +1,9 @@
-{-# LANGUAGE ViewPatterns #-}
-
+-- endCh15.hs
+--
 -- End of chapter exercises (ch 15)
+
+
+{-# LANGUAGE ViewPatterns #-}
 
 import Control.Monad (liftM, liftM2, liftM3, liftM4)
 import Data.Semigroup

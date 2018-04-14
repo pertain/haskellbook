@@ -1,4 +1,6 @@
--- Modifying Code -- End of chapter exercises (ch 13)
+-- endCh13.hs
+--
+-- End of chapter exercises (ch 13)
 
 import Control.Monad (forever)
 import System.Exit (exitSuccess)

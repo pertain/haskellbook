@@ -1,4 +1,4 @@
--- ch16.hs
+-- endCh16.hs
 --
 -- End of chapter exercises (ch 16 - Functor)
 

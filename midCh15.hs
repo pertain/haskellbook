@@ -1,4 +1,4 @@
--- ch15mid.hs
+-- midCh15.hs
 --
 -- In-Chapter exercises (ch 15)
 

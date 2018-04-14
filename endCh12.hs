@@ -1,3 +1,5 @@
+-- endCh12.hs
+--
 -- Unfolds  -- End of chapter exercises (ch 12)
 
 -- 1) Write the function myIterate using direct recursion.

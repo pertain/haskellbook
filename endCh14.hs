@@ -1,6 +1,9 @@
+-- endCh14.hs
+--
+-- Testing properties with QuickCheck
+-- End of chapter exercises (ch 14)
 {-# LANGUAGE ViewPatterns #-}
 
--- Testing properties with QuickCheck -- end of chapter exercises (ch 14)
 
 import Test.QuickCheck
 import Test.QuickCheck.Function
