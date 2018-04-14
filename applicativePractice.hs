@@ -4,7 +4,11 @@
 
 --import Control.Applicative (liftA2)
 import Data.Monoid
+import Control.Monad (liftM2)
 import Data.List (elemIndex)
+import Test.QuickCheck hiding (Success, Failure)
+import Test.QuickCheck.Checkers
+import Test.QuickCheck.Classes
 
 
 -- Exercises: Lookups
@@ -75,6 +79,12 @@ instance Applicative Identity where
     pure = Identity
     Identity f <*> Identity a = Identity (f a)
 
+instance Arbitrary a => Arbitrary (Identity a) where
+    arbitrary = Identity <$> arbitrary
+
+instance Eq a => EqProp (Identity a) where
+    (=-=) = eq
+
 
 -- Exercise: Constant Instance
 --
@@ -92,6 +102,12 @@ instance Monoid a => Applicative (Constant a) where
     pure _ = Constant mempty
     Constant m <*> Constant m' = Constant (m <> m')
 
+instance (Arbitrary a, Arbitrary b) => Arbitrary (Constant a b) where
+    arbitrary = Constant <$> arbitrary
+
+instance (Eq a, Eq b) => EqProp (Constant a b) where
+    (=-=) = eq
+
 
 -- Exercise: Fixer Upper
 --
@@ -103,3 +119,52 @@ fixerUpper1 = const <$> Just "Hello" <*> pure "World"
 
 --(,,,) Just 90 <*> Just 10 Just "Tierness" [1,2,3]
 fixerUpper2 = (,,,) <$> Just 90 <*> Just 10 <*> Just "Tierness" <*> pure [1,2,3]
+
+
+-- Exercise: Variations on Either
+--
+-- The Applicative instance should combine
+-- failures with the Monoid typeclass
+data Validation e a = Failure e | Success a
+    deriving (Eq, Show)
+
+-- same as Either
+instance Functor (Validation e) where
+    --fmap f (Validation e a) = Validation e (f a)
+    fmap _ (Failure e) = Failure e
+    fmap f (Success a) = Success (f a)
+
+-- this is different
+instance Monoid e => Applicative (Validation e) where
+    pure a = Success a
+    (<*>) (Success f) (Success x) = Success (f x)
+    (<*>) (Failure me) (Failure me') = Failure (me <> me')
+    (<*>) (Failure me) _ = Failure me
+    (<*>) _ (Failure me) = Failure me
+
+instance (Arbitrary a, Arbitrary e, Monoid e)
+    => Arbitrary (Validation e a) where
+    arbitrary = frequency [(2, Failure <$> arbitrary),
+                           (3, Success <$> arbitrary)]
+
+instance (Eq e, Eq a) => EqProp (Validation e a) where
+    (=-=) = eq
+
+
+type ICS = (Int,Char,String)
+
+main :: IO ()
+main = do
+    putStrLn "-----------------------------------------"
+    putStrLn "Identity a"
+    quickBatch $ functor (undefined :: Identity ICS)
+    quickBatch $ applicative (undefined :: Identity ICS)
+    putStrLn "-----------------------------------------"
+    putStrLn "Constant a b"
+    quickBatch $ functor (undefined :: Constant String ICS)
+    quickBatch $ applicative (undefined :: Constant String ICS)
+    putStrLn "-----------------------------------------"
+    putStrLn "Validation e a"
+    quickBatch $ functor (undefined :: Validation String ICS)
+    quickBatch $ applicative (undefined :: Validation String ICS)
+    putStrLn "-----------------------------------------"
