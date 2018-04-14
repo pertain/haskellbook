@@ -23,14 +23,18 @@ instance Functor List where
     fmap _ Nil = Nil
     fmap f (Cons x xs) = Cons (f x) (fmap f xs)
 
+instance Monoid (List a) where
+    mempty = Nil
+    mappend Nil ys = ys
+    mappend (Cons x xs) ys = Cons x (mappend xs ys)
+
 instance Applicative List where
     --pure = undefined
     --(<*>) = undefined
     pure a = Cons a Nil
     (<*>) Nil _ = Nil
     (<*>) _ Nil = Nil
-    (<*>) (Cons f fs) (Cons x xs) =
-        Cons (f x) (fs <*> xs)
+    (<*>) (Cons f fs) xs = (f <$> xs) <> (fs <*> xs)
 
 instance Arbitrary a => Arbitrary (List a) where
     -- Generates long Lists (extremely slow)
@@ -44,6 +48,10 @@ instance Arbitrary a => Arbitrary (List a) where
                 frequency [
                     (1, return Nil),
                     (2, liftM2 Cons arbitrary (consList (div n 2)))]
+
+instance Eq a => EqProp (List a) where
+    (=-=) = eq
+
 
 newtype ZipList' a = ZipList' (List a)
     deriving (Eq, Show)
@@ -65,15 +73,34 @@ infiniteList' x = xs
     where
         xs = Cons x xs
 
+zip' :: List (a -> b) -> List a -> List b
+zip' _ Nil = Nil
+zip' Nil _ = Nil
+zip' (Cons f fs) (Cons x xs) =
+    Cons (f x) (zip' fs xs)
+
 instance Applicative ZipList' where
     --pure = undefined
     --(<*>) = undefined
     --pure a = ZipList' (pure a)        -- single-element List (incorrect)
     pure a = ZipList' (infiniteList' a) -- infinite List (correct)
-    (<*>) _ (ZipList' Nil) = ZipList' Nil
-    (<*>) (ZipList' Nil) _ = ZipList' Nil
-    (<*>) (ZipList' (Cons f fs)) (ZipList' (Cons x xs)) =
-        ZipList' (Cons (f x) (fs <*> xs))
+    (<*>) (ZipList' fs) (ZipList' xs) =
+        ZipList' (zip' fs xs)
 
 instance Arbitrary a => Arbitrary (ZipList' a) where
     arbitrary = ZipList' <$> arbitrary
+
+
+type ICS = (Int,Char,String)
+
+main :: IO ()
+main = do
+    putStrLn "-----------------------------------------"
+    putStrLn "List a"
+    quickBatch $ functor (undefined :: List ICS)
+    quickBatch $ applicative (undefined :: List ICS)
+    putStrLn "-----------------------------------------"
+    putStrLn "ZipList' a"
+    quickBatch $ functor (undefined :: ZipList' ICS)
+    quickBatch $ applicative (undefined :: ZipList' ICS)
+    putStrLn "-----------------------------------------"
