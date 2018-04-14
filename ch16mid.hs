@@ -1,11 +1,58 @@
 -- ch16mid.hs
 --
--- Instances of Func exercises (ch 16)
+-- In-Chapter exercises (ch 16)
 
 import Control.Monad (liftM, liftM2, liftM3, liftM4)
 import Test.QuickCheck
 import Test.QuickCheck.Function
 
+
+-- Heavy Lifting exercises
+
+-- Add fmap, parentheses, and function composition to
+-- the expression as needed for the expression to
+-- typecheck and produce the expected result
+
+
+-- 1) expected result: a = [2]
+--
+-- a = (+1) $ read "[1]" :: [Int]
+a = fmap (+1) $ read "[1]" :: [Int]
+
+
+-- 2) expected result: b = Just ["Hi,lol", "Hellolol"]
+--
+--b = (++ "lol") (Just ["Hi,", "Hello"])
+b = (fmap . fmap) (++ "lol") (Just ["Hi,", "Hello"])
+
+
+-- 3) expected result: c 1 = -2
+--
+--c = (*2) (\x -> x - 2)
+c = fmap (*2) (\x -> x - 2)
+
+
+-- 4) expected result: d 0 = "1[0,1,2,3]"
+--
+--d = ((return '1' ++) . show) (\x -> [x, 1..3])
+d = fmap ((return '1' ++) . show) (\x -> [x, 1..3])
+
+
+-- 5) expected result: e = 3693
+--
+{-
+e :: IO Integer
+e = let ioi = readIO "1" :: IO Integer
+        changed read ("123" ++) show ioi
+    in (*3) changed
+-}
+e :: IO Integer
+e = let ioi     = readIO "1" :: IO Integer
+        changed = fmap read (fmap ("123" ++) (fmap show ioi))
+    in fmap (*3) changed
+
+
+-- Instances of Func exercises
 functorIdentity :: (Functor f, Eq (f a)) => f a -> Bool
 functorIdentity f = fmap id f == f
 
