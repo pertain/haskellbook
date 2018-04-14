@@ -121,6 +121,106 @@ fixerUpper1 = const <$> Just "Hello" <*> pure "World"
 fixerUpper2 = (,,,) <$> Just 90 <*> Just 10 <*> Just "Tierness" <*> pure [1,2,3]
 
 
+-- Exercise: List Applicative
+--
+-- Implement the List Applicative
+data List a = Nil | Cons a (List a)
+    deriving (Eq, Show)
+
+instance Monoid (List a) where
+    mempty = Nil
+    mappend Nil ys = ys
+    mappend (Cons x xs) ys = Cons x (mappend xs ys)
+
+instance Functor List where
+    fmap _ Nil = Nil
+    fmap f (Cons x xs) = Cons (f x) (fmap f xs)
+
+instance Applicative List where
+    --pure = undefined
+    --(<*>) = undefined
+    pure a = Cons a Nil
+    (<*>) Nil _ = Nil
+    (<*>) _ Nil = Nil
+    (<*>) (Cons f fs) xs = (f <$> xs) <> (fs <*> xs)
+
+-- Generates Lists of arbitrary length
+instance Arbitrary a => Arbitrary (List a) where
+    arbitrary = sized consList
+        where
+            consList 0 = return Nil
+            consList n =
+                frequency [
+                    (1, return $ Nil),
+                    (2, liftM2 Cons arbitrary (consList (div n 2)))]
+
+instance Eq a => EqProp (List a) where
+    (=-=) = eq
+
+append :: List a -> List a -> List a
+append Nil ys = ys
+append (Cons x xs) ys = Cons x (append xs ys)
+
+fold :: (a -> b -> b) -> b -> List a -> b
+fold _ b Nil = b
+fold f b (Cons h t) = f h (fold f b t)
+
+concat' :: List (List a) -> List a
+concat' = fold append Nil
+
+-- Write this one in terms of concat' and fmap
+flatMap :: (a -> List b) -> List a -> List b
+--flatMap f as = undefined
+flatMap f as = concat' (fmap f as)
+
+
+-- Exercise: ZipList Applicative
+--
+-- Implement the ZipList Applicative
+newtype ZipList' a = ZipList' (List a)
+    deriving (Eq, Show)
+
+take' :: Int -> List a -> List a
+--take' = undefined
+take' 0 _ = Nil
+take' _ Nil = Nil
+take' n (Cons x xs) = Cons x (take' (n - 1) xs)
+
+instance Eq a => EqProp (ZipList' a) where
+    xs =-= ys = xs' `eq` ys'
+        where
+            xs' = let (ZipList' l) = xs
+                  in take' 3000 l
+            ys' = let (ZipList' l) = ys
+                  in take' 3000 l
+
+instance Functor ZipList' where
+    fmap f (ZipList' xs) = ZipList' (fmap f xs)
+
+-- Needed to create infinite Lists for ZipList' pure
+infiniteList' :: a -> List a
+infiniteList' x = xs
+    where
+        xs = Cons x xs
+
+zip' :: List (a -> b) -> List a -> List b
+zip' _ Nil = Nil
+zip' Nil _ = Nil
+zip' (Cons f fs) (Cons x xs) =
+    Cons (f x) (zip' fs xs)
+
+instance Applicative ZipList' where
+    --pure = undefined
+    --(<*>) = undefined
+    --pure a = ZipList' (pure a)        -- single-element List (incorrect)
+    pure a = ZipList' (infiniteList' a) -- infinite List (correct)
+    (<*>) (ZipList' fs) (ZipList' xs) =
+        ZipList' (zip' fs xs)
+
+instance Arbitrary a => Arbitrary (ZipList' a) where
+    arbitrary = ZipList' <$> arbitrary
+
+
 -- Exercise: Variations on Either
 --
 -- The Applicative instance should combine
@@ -163,6 +263,15 @@ main = do
     putStrLn "Constant a b"
     quickBatch $ functor (undefined :: Constant String ICS)
     quickBatch $ applicative (undefined :: Constant String ICS)
+    putStrLn "-----------------------------------------"
+    putStrLn "List a"
+    quickBatch $ monoid (undefined :: List ICS)
+    quickBatch $ functor (undefined :: List ICS)
+    quickBatch $ applicative (undefined :: List ICS)
+    putStrLn "-----------------------------------------"
+    putStrLn "ZipList' a"
+    quickBatch $ functor (undefined :: ZipList' ICS)
+    quickBatch $ applicative (undefined :: ZipList' ICS)
     putStrLn "-----------------------------------------"
     putStrLn "Validation e a"
     quickBatch $ functor (undefined :: Validation String ICS)
