@@ -28,8 +28,7 @@ instance Applicative List where
     pure a = Cons a Nil
     (<*>) Nil _ = Nil
     (<*>) _ Nil = Nil
-    (<*>) (Cons f fs) l@(Cons x xs) =
-        Cons (f x) ((f <$> xs) <> (fs <*> l))
+    (<*>) (Cons f fs) xs = (f <$> xs) <> (fs <*> xs)
 
 {-- This instance only exercises Lists up to length of 2
 instance Arbitrary a => Arbitrary (List a) where
@@ -69,3 +68,15 @@ concat' = fold append Nil
 flatMap :: (a -> List b) -> List a -> List b
 --flatMap f as = undefined
 flatMap f as = concat' (fmap f as)
+
+
+type ICS = (Int,Char,String)
+
+main :: IO ()
+main = do
+    putStrLn "-----------------------------------------"
+    putStrLn "List a"
+    quickBatch $ monoid (undefined :: List ICS)
+    quickBatch $ functor (undefined :: List ICS)
+    quickBatch $ applicative (undefined :: List ICS)
+    putStrLn "-----------------------------------------"
