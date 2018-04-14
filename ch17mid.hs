@@ -1,4 +1,4 @@
--- applicativePractice.hs
+-- ch17mid.hs
 --
 -- In-Chapter exercises (ch 17)
 

@@ -1,5 +1,5 @@
--- functorPractice.hs
-
+-- ch16mid.hs
+--
 -- Instances of Func exercises (ch 16)
 
 import Control.Monad (liftM, liftM2, liftM3, liftM4)

@@ -1,11 +1,13 @@
--- Monoid exercises (ch 15)
+-- ch15mid.hs
+--
+-- In-Chapter exercises (ch 15)
 
 --import Control.Monad
 import Data.Monoid
 import Test.QuickCheck
 
--- Optional Monoid
 
+-- Optional Monoid
 data Optional a = Nada | Only a
     deriving (Eq, Show)
 
@@ -18,7 +20,6 @@ instance Monoid a => Monoid (Optional a)
 
 
 -- Madness
-
 type Verb = String
 type Adjective = String
 type Adverb = String
@@ -51,13 +52,11 @@ madlibbinBetter' e adv noun adj =
 
 
 -- Validating associativity with QuickCheck
-
 monoidAssoc :: (Eq m, Monoid m) => m -> m -> m -> Bool
 monoidAssoc a b c = (a <> (b <> c)) == ((a <> b) <> c)
 
 
 -- Testing right and left identity
-
 monoidLeftIdentity :: (Eq m, Monoid m) => m -> Bool
 monoidLeftIdentity a = (mempty <> a) == a
 
@@ -66,7 +65,6 @@ monoidRightIdentity a = (a <> mempty) == a
 
 
 -- Testing QuickCheck's patience (testing an invalid monoid)
-
 data Bull = Fools | Twoo
     deriving (Eq, Show)
 
@@ -83,7 +81,6 @@ type BullMappend = Bull -> Bull -> Bull -> Bool
 
 
 -- Exercise: Maybe another Monoid
-
 newtype First' a =
     First' {getFirst' :: Optional a}
     deriving (Eq, Show)
