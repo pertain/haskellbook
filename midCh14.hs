@@ -1,4 +1,6 @@
--- arb.hs -- exercises using Arbitrary from QuickCheck (ch 14)
+-- midCh14.hs
+--
+-- In-Chapter exercises using Arbitrary from QuickCheck (ch 14)
 
 import Test.QuickCheck
 
