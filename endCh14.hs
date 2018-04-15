@@ -1,10 +1,11 @@
 -- endCh14.hs
 --
 -- End of chapter exercises (ch 14)
+
 {-# LANGUAGE ViewPatterns #-}
 
 import Test.Hspec
-import WordNumber (digitToWord, digits, wordNumber)
+import EndCh08
 
 import Test.QuickCheck
 import Test.QuickCheck.Function
