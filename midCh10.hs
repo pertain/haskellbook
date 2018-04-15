@@ -1,7 +1,12 @@
--- Database Processing exercise (ch 10)
+-- midCh10.hs
+--
+-- In-Chapter exercises (ch 10)
 
 import Data.Time
 
+
+-- Exercises: Database Processing
+--
 data DatabaseItem = DbString String
                   | DbNumber Integer
                   | DbDate UTCTime

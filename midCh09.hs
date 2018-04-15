@@ -1,7 +1,10 @@
--- Thy Fearful Symmetry (ch 09)
+-- midCh09.hs
+--
+-- In-Chapter exercises (ch 09)
 
-module PoemLines where
 
+-- Exercises: Thy Fearful Symmetry
+--
 hns         = "holas nolas scrolas"
 
 firstSen    = "Tyger Tyger, burning bright\n"
@@ -22,7 +25,7 @@ myWords l   = x : myWords xs
 
 -- splits on newline
 myLines :: String -> [String]
---myLines = (???)
+--myLines = undefined
 myLines []  = []
 myLines l   = x : myLines xs
     where
@@ -43,6 +46,7 @@ shouldEqual =
     , "What immortal hand or eye"
     , "Could frame thy fearful symmetry?"
     ]
+
 
 main :: IO ()
 main = print $
