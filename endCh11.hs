@@ -1,9 +1,56 @@
-module Phone where
+-- endCh11.hs
+--
+-- End of chapter exercises (ch 11)
 
+import Data.Char (toUpper, toLower)
 import Data.List (elemIndex, group, sort, sortBy)
-import Data.Char (toLower)
 import Data.Function (on)
+import qualified Data.List.Split as LS
 
+
+-- As-Patterns
+--
+-- 1) This should return True if (and only if) all the
+--    values in the first list appear in the second list,
+--    though they need not be contiguous.
+isSubseqOf :: (Eq a) => [a] -> [a] -> Bool
+isSubseqOf l1 l2 = l1 == subSeq l1 l2
+    where
+        subSeq [] _ = []
+        subSeq _ [] = []
+        subSeq l@(x:xs) (y:ys)
+            | x == y = y : subSeq xs ys
+            | otherwise = subSeq l ys
+
+-- 2) Split a sentence into words, then tuple each word
+--    with the capitalized form of each.
+capitalizeWords :: String -> [(String, String)]
+capitalizeWords s = map (wordPair) (words s)
+    where
+        wordPair w@(x:xs) = (w, toUpper x : xs)
+
+
+-- Language exercises
+--
+-- 1) Write a function that capitalizes a word.
+capitalizeWord :: String -> String
+capitalizeWord (x:xs) = toUpper x : xs
+
+-- 2) Write a function that capitalizes sentences
+--    in a paragraph. Recognize when a new
+--    sentence has begun by checkin for periods.
+--    Reuse the capitalizeWord function.
+capitalizeParagraph :: String -> String
+capitalizeParagraph s = unwords sentences
+    where
+        ss = LS.split (LS.condense $ LS.endsWithOneOf ".!?") s
+        capSentence (' ':xs) = capitalizeWord xs
+        capSentence s' = capitalizeWord s'
+        sentences = map capSentence ss
+
+
+-- Phone exercise
+--
 type Digit = Char
 type Values = [Char]
 type Presses = Int
@@ -98,3 +145,20 @@ coolestWord :: [String] -> String
 coolestWord ss = (head . head) sorted
     where
         sorted = (sortedGroups . concat . (map words)) ss
+
+
+-- Hutton's Razor
+--
+data Expr = Lit Integer | Add Expr Expr
+
+-- Write the "eval" function which reduces an
+-- expression to a final sum
+eval :: Expr -> Integer
+--eval = undefined
+eval (Lit x) = x
+eval (Add a b) = eval a + eval b
+
+-- Write a printer for the expressions
+printExpr :: Expr -> String
+printExpr (Lit x) = show x
+printExpr (Add a b) = printExpr a ++ " + " ++ printExpr b
