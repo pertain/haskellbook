@@ -1,11 +1,46 @@
--- endCh11.hs
+-- EndCh11.hs
 --
 -- End of chapter exercises (ch 11)
+
+module EndCh11 (vEncipher, vDecipher) where
 
 import Data.Char (toUpper, toLower)
 import Data.List (elemIndex, group, sort, sortBy)
 import Data.Function (on)
+import EndCh09 (caesarCipher, relativeCharIndex)
 import qualified Data.List.Split as LS
+
+
+-- Vigenère Cipher
+--
+type ShiftSize = Int
+type InputChar = Char
+type ShiftedChar = Char
+type Key = String
+type ExpandedKey = String
+type Plain = String
+type Encrypted = String
+
+vigenèreCipher :: (ShiftSize, InputChar) -> ShiftedChar
+vigenèreCipher = uncurry caesarCipher
+
+vFullKey :: Key -> String -> ExpandedKey
+vFullKey k s = unwords $ LS.splitPlaces ls ks
+    where
+        ks = take (length s) (concat $ repeat k)
+        ls = map length (words s)
+
+vEncipher :: Key -> Plain -> Encrypted
+vEncipher k s = map vigenèreCipher pairs
+    where
+        shifts = map relativeCharIndex (vFullKey k s)
+        pairs  = zip shifts s
+
+vDecipher :: Key -> Encrypted -> Plain
+vDecipher k s = map vigenèreCipher pairs
+    where
+        shifts = map (negate . relativeCharIndex) (vFullKey k s)
+        pairs  = zip shifts s
 
 
 -- As-Patterns

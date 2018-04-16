@@ -6,6 +6,48 @@ import Control.Monad (forever)
 import System.Exit (exitSuccess)
 import Data.Char (toLower, isAlpha)
 import System.IO
+import EndCh09 (cEncipher, cDecipher)
+import EndCh11 (vEncipher, vDecipher)
+
+-- Caesar (ch 09) and Vigenère (ch 11) ciphers have
+-- been modified to accept user input.
+-- Those changes are exercised here:
+main :: IO ()
+main = do
+    hSetBuffering stdout NoBuffering
+    putStr "\nChoose a cipher.\n(C)aesar or (V)igenère: "
+    ciph <- getChar
+    putStrLn "\n"
+    putStr "(E)ncode or (D)ecipher: "
+    direction <- getChar
+    putStrLn ""
+    case (toLower ciph == 'c', toLower ciph == 'v') of
+        (True, _)      -> do
+            putStrLn "Caesar Cipher"
+            putStr "Enter the shift size: "
+            s <- readLn :: IO Int
+            putStrLn ""
+            putStr "Enter the word: "
+            w <- getLine
+            case (toLower direction == 'e', toLower direction == 'd') of
+                (True, _)      -> putStrLn (w ++ " -> " ++ cEncipher s w)
+                (_, True)      -> putStrLn (w ++ " -> " ++ cDecipher s w)
+                (False, False) -> return ()
+        (_, True)      -> do
+            putStrLn "Vigenère Cipher"
+            putStr "Enter the key string: "
+            k <- getLine
+            putStr "Enter the word: "
+            w <- getLine
+            case (toLower direction == 'e', toLower direction == 'd') of
+                (True, _)      -> putStrLn (w ++ " -> " ++ vEncipher k w)
+                (_, True)      -> putStrLn (w ++ " -> " ++ vDecipher k w)
+                (False, False) -> return ()
+        (False, False) -> do
+            putStrLn "Not a valid choice (Enter C or V)"
+            return ()
+    return ()
+
 
 -- 2) The palindrome function has a forever loop that
 --    never exits. Modify the function so it exits
