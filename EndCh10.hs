@@ -38,5 +38,5 @@ nvn = [(n,v,n') | n <- nouns, v <- verbs, n' <- nouns]
 
 
 -- Less concrete variation of svs and nvn functions
-xyx :: [a] -> [b] -> [(a,b,a)]
-xyx xs ys = [(x,y,x') | x <- xs, y <- ys, x' <- xs]
+xyz :: [a] -> [b] -> [c] -> [(a,b,c)]
+xyz xs ys zs = [(x,y,z) | x <- xs, y <- ys, z <- zs]
