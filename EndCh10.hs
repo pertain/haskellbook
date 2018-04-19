@@ -30,8 +30,13 @@ psvs = [(s,v,s') | s <- stops, v <- vowels, s' <- stops, s == 'p']
 -- Set up lists of nouns and verbs, and write a
 -- function that produces 3-tuples representing
 -- possible noun-verb-noun sentences
-noun = ["program", "beet", "keycap", "headphones", "coffee", "record"]
-verb = ["listen", "obtain", "consider", "lean", "loafe"]
+nouns = ["program", "beet", "keycap", "headphones", "coffee", "record"]
+verbs = ["listen", "obtain", "consider", "lean", "loafe"]
 
 nvn :: [(String,String,String)]
-nvn = [(n,v,n') | n <- noun, v <- verb, n' <- noun]
+nvn = [(n,v,n') | n <- nouns, v <- verbs, n' <- nouns]
+
+
+-- Less concrete variation of svs and nvn functions
+xyx :: [a] -> [b] -> [(a,b,a)]
+xyx xs ys = [(x,y,x') | x <- xs, y <- ys, x' <- xs]
