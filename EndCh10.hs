@@ -1,12 +1,17 @@
--- endCh10.hs
+-- EndCh10.hs
 --
 -- End of chapter exercises (ch 10)
+
+module EndCh10 where
 
 
 -- Vowels and Consonants
 --
 -- Given the following sets of consonants and vowels:
+stops :: String
 stops = "pbtdkg"
+
+vowels :: String
 vowels = "aeiou"
 
 -- a)
