@@ -7,6 +7,8 @@ import Data.Monoid
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes
+import Control.Applicative (liftA3)
+import EndCh10 (stops, vowels, nouns, verbs, xyz)
 
 
 -- Specialize the types
@@ -172,6 +174,17 @@ instance (Eq a, Eq b) => EqProp (Four' a b) where
 
 type S = String
 type ICS = (Int,Char,S)
+
+
+-- Combinations
+--
+-- Rewrite the xyz function from chapter 10
+-- using liftA3 from Control.Applicative.
+-- The function generates all possible combinations
+-- from three input lists
+combos :: [a] -> [b] -> [c] -> [(a,b,c)]
+combos xs ys zs = liftA3 (,,) xs ys zs
+
 
 main :: IO ()
 main = do
