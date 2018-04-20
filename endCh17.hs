@@ -185,6 +185,10 @@ type ICS = (Int,Char,S)
 combos :: [a] -> [b] -> [c] -> [(a,b,c)]
 combos xs ys zs = liftA3 (,,) xs ys zs
 
+-- Verify that the two functions produce the same results
+xyzCombos :: (Eq a, Eq b, Eq c) => [a] -> [b] -> [c] -> Bool
+xyzCombos xs ys zs = (xyz xs ys zs) == (combos xs ys zs)
+
 
 main :: IO ()
 main = do
@@ -212,4 +216,13 @@ main = do
     putStrLn "Four' a b"
     quickBatch $ functor (undefined :: Four' S ICS)
     quickBatch $ applicative (undefined :: Four' S ICS)
+    putStrLn "-----------------------------------------"
+    putStrLn "\nCombinations Exercise"
+    putStrLn "-----------------------------------------"
+    putStrLn "xyz stops vowels stops"
+    putStr   "    == combos stops vowels stops = "
+    putStrLn . show $ xyzCombos stops vowels stops
+    putStrLn "\nxyz nouns verbs nouns"
+    putStr   "    == combos nouns verbs nouns = "
+    putStrLn . show $ xyzCombos nouns verbs nouns
     putStrLn "-----------------------------------------"
