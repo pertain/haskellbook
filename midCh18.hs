@@ -2,7 +2,7 @@
 --
 -- In-chapter exercises (ch 18)
 
-import Control.Monad (join)
+import Control.Monad (join, (>=>))
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes
@@ -41,6 +41,12 @@ instance (Arbitrary a, Arbitrary b) => Arbitrary (Sum a b) where
 
 instance (Eq a, Eq b) => EqProp (Sum a b) where
     (=-=) = eq
+
+
+-- Kleisli composition (should be identical to (>=>))
+--
+(>>=>>) :: Monad m => (a -> m b) -> (b -> m c) -> a -> m c
+(>>=>>) f g a = f a >>= g
 
 
 type ICS = (Int,Char,String)
