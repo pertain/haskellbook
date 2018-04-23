@@ -128,30 +128,79 @@ instance Eq a => EqProp (List a) where
 -- provided must typecheck as is)
 --
 
+
 -- 1)
 j :: Monad m => m (m a) -> m a
+{- option 1 -}
 j = join
+
+{- option 2 -}
+--j mma = mma >>= id
+
+{- option 3 -}
+--j mma = do
+    --ma <- mma
+    --ma
+
 
 -- 2)
 l1 :: Monad m => (a -> b) -> m a -> m b
+{- option 1 -}
 --l1 = fmap
+
+{- option 2 -}
 l1 = liftM
+
+{- option 3 -}
+--l1 f ma = ma >>= (\a -> return $ f a)
+
+{- option 4 -}
+--l1 f ma = do
+    --a <- ma
+    --return $ f a
+
 
 -- 3)
 l2 :: Monad m => (a -> b -> c) -> m a -> m b -> m c
-l2 f ma mb = f <$> ma <*> mb
---l2 = liftM2
+{- option 1 -}
+--l2 f ma mb = f <$> ma <*> mb
+
+{- option 2 -}
+l2 = liftM2
+
+{- option 3 -}
+--l2 f ma mb = do
+    --a <- ma
+    --b <- mb
+    --return $ f a b
+
 
 -- 4)
 a :: Monad m => m a -> m (a -> b) -> m b
-a = flip (<*>)
+{- option 1 -}
+--a = flip (<*>)
+
+{- option 2 -}
+--a ma mf = mf <*> ma
+
+{- option 3 -}
+a = flip ap
+
+{- option 4 -}
+--a ma mf = do
+    --a <- ma
+    --f <- mf
+    --return $ f a
+
 
 -- 5)
 meh :: Monad m => [a] -> (a -> m b) -> m [b]
+{- option 1 -}
 meh = undefined
 
 -- 6)
 flipType :: (Monad m) => [m a] -> m [a]
+{- option 1 -}
 flipType = undefined
 
 
