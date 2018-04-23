@@ -4,6 +4,8 @@
 
 {-# LANGUAGE FlexibleInstances #-}
 
+import Data.Monoid
+import Control.Monad
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes
@@ -83,6 +85,76 @@ instance Eq a => EqProp (Identity a) where
     (=-=) = eq
 
 
+-- 4)
+data List a = Nil | Cons a (List a)
+    deriving (Eq, Show)
+
+instance Monoid (List a) where
+    mempty = Nil
+    mappend Nil ys = ys
+    mappend (Cons x xs) ys = Cons x (mappend xs ys)
+
+instance Functor List where
+    fmap _ Nil = Nil
+    fmap f (Cons x xs) = Cons (f x) (fmap f xs)
+
+instance Applicative List where
+    pure a = Cons a Nil
+    (<*>) Nil _ = Nil
+    (<*>) _ Nil = Nil
+    (<*>) (Cons f fs) xs = (f <$> xs) <> (fs <*> xs)
+
+instance Monad List where
+    return = pure
+    (>>=) Nil _ = Nil
+    (>>=) (Cons x xs) f = f x <> (xs >>= f)
+
+instance Arbitrary a => Arbitrary (List a) where
+    arbitrary = sized consList
+        where
+            consList 0 = return Nil
+            consList n =
+                frequency [
+                    (1, return Nil),
+                    (2, Cons <$> arbitrary <*> consList (div n 2))]
+
+instance Eq a => EqProp (List a) where
+    (=-=) = eq
+
+
+-- Write the following functions using methods
+-- provided by Monad and Functor (can use stuff
+-- like identity and composition, but the types
+-- provided must typecheck as is)
+--
+
+-- 1)
+j :: Monad m => m (m a) -> m a
+j = join
+
+-- 2)
+l1 :: Monad m => (a -> b) -> m a -> m b
+--l1 = fmap
+l1 = liftM
+
+-- 3)
+l2 :: Monad m => (a -> b -> c) -> m a -> m b -> m c
+l2 f ma mb = f <$> ma <*> mb
+--l2 = liftM2
+
+-- 4)
+a :: Monad m => m a -> m (a -> b) -> m b
+a = flip (<*>)
+
+-- 5)
+meh :: Monad m => [a] -> (a -> m b) -> m [b]
+meh = undefined
+
+-- 6)
+flipType :: (Monad m) => [m a] -> m [a]
+flipType = undefined
+
+
 type ICS = (Int,Char,String)
 type S = String
 
@@ -103,4 +175,10 @@ main = do
     quickBatch $ functor (undefined :: Identity ICS)
     quickBatch $ applicative (undefined :: Identity ICS)
     quickBatch $ monad (undefined :: Identity ICS)
+    putStrLn "-----------------------------------------"
+    putStrLn "List a"
+    quickBatch $ monoid (undefined :: List ICS)
+    quickBatch $ functor (undefined :: List ICS)
+    quickBatch $ applicative (undefined :: List ICS)
+    quickBatch $ monad (undefined :: List ICS)
     putStrLn "-----------------------------------------"
