@@ -196,12 +196,23 @@ a = flip ap
 -- 5)
 meh :: Monad m => [a] -> (a -> m b) -> m [b]
 {- option 1 -}
-meh = undefined
+--meh = flip mapM
+
+{- option 2 -}
+--meh = forM
+
+{- option 3 -}
+meh [] _ = pure []
+meh (x:xs) f = (:) <$> f x <*> meh xs f
+--meh (x:xs) f = ((:) <$> f x) `ap` meh xs f
 
 -- 6)
 flipType :: (Monad m) => [m a] -> m [a]
 {- option 1 -}
-flipType = undefined
+--flipType = sequence
+
+{- option 2 -}
+flipType ms = meh ms id
 
 
 type ICS = (Int,Char,String)
