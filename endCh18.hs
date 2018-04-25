@@ -202,7 +202,7 @@ meh :: Monad m => [a] -> (a -> m b) -> m [b]
 --meh = forM
 
 {- option 3 -}
-meh [] _ = pure []
+meh [] _ = return []
 meh (x:xs) f = (:) <$> f x <*> meh xs f
 --meh (x:xs) f = ((:) <$> f x) `ap` meh xs f
 
