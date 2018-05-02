@@ -20,4 +20,9 @@ productF = getProduct . (foldMap Product)
 
 -- 3) elem
 elemF :: (Foldable t, Eq a) => a -> t a -> Bool
-elemF = undefined
+--elemF a ta = getAny $ foldMap (Any . (== a)) ta
+elemF a = getAny . (foldMap (Any . (== a)))
+
+-- 4) minimum
+minimumF :: (Foldable t, Ord a) => t a -> Bool
+minimumF = undefined
