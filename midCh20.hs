@@ -70,19 +70,19 @@ maximumF = getMax . (foldMap (Max . pure))
 
 
 -- 6) null
-data Null a = Null {getNull :: Bool}
+data Null = Null {getNull :: Bool}
     deriving (Eq, Show)
 
-instance Monoid (Null a) where
+instance Monoid Null where
     mempty = Null True
     mappend a (Null True) = a
     mappend (Null True) a = a
     mappend _ _ = Null False
 
-instance Arbitrary a => Arbitrary (Null a) where
+instance Arbitrary Null where
     arbitrary = Null <$> arbitrary
 
-instance Eq a => EqProp (Null a) where
+instance EqProp Null where
     (=-=) = eq
 
 nullF :: Foldable t => t a -> Bool
@@ -99,5 +99,5 @@ main = do
     putStrLn "Max a"
     quickBatch $ monoid (undefined :: Max ICS)
     putStrLn "Null a"
-    quickBatch $ monoid (undefined :: Null ICS)
+    quickBatch $ monoid (undefined :: Null)
     putStrLn "-----------------------------------------"
