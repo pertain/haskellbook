@@ -30,7 +30,7 @@ elemF a = getAny . (foldMap (Any . (== a)))
 
 
 -- 4) minimum
-data Min a = Min {getMin :: Maybe a}
+newtype Min a = Min {getMin :: Maybe a}
     deriving (Eq, Show)
 
 instance Ord a => Monoid (Min a) where
@@ -50,7 +50,7 @@ minimumF = getMin . (foldMap (Min . pure))
 
 
 -- 5) maximum
-data Max a = Max {getMax :: Maybe a}
+newtype Max a = Max {getMax :: Maybe a}
     deriving (Eq, Show)
 
 instance Ord a => Monoid (Max a) where
@@ -70,23 +70,42 @@ maximumF = getMax . (foldMap (Max . pure))
 
 
 -- 6) null
-data Null = Null {getNull :: Bool}
-    deriving (Eq, Show)
-
-instance Monoid Null where
-    mempty = Null True
-    mappend a (Null True) = a
-    mappend (Null True) a = a
-    mappend _ _ = Null False
-
-instance Arbitrary Null where
-    arbitrary = Null <$> arbitrary
-
-instance EqProp Null where
-    (=-=) = eq
-
 nullF :: Foldable t => t a -> Bool
-nullF = undefined
+nullF = getAll . (foldMap (const (All False)))
+
+
+-- 7) length
+
+-- foldMap
+lengthF :: Foldable t => t a -> Int
+lengthF = getSum . (foldMap (const (Sum 1)))
+
+-- foldr
+lengthF' :: Foldable t => t a -> Int
+lengthF' = foldr (const (+1)) 0
+
+
+-- 8) toList
+
+-- foldMap
+toListF :: Foldable t => t a -> [a]
+toListF = foldMap (: [])
+
+-- foldr
+toListF' :: Foldable t => t a -> [a]
+toListF' = foldr (:) []
+
+
+-- 9) fold
+foldF :: (Foldable t, Monoid m) => t m -> m
+foldF = foldMap . mappend $ mempty
+
+
+-- 10) foldMap
+--
+-- Define foldMap in terms of foldr
+foldMapF :: (Foldable t, Monoid m) => (a -> m) -> t a -> m
+foldMapF = undefined
 
 
 type ICS = (Int,Char,String)
@@ -98,6 +117,4 @@ main = do
     quickBatch $ monoid (undefined :: Min ICS)
     putStrLn "Max a"
     quickBatch $ monoid (undefined :: Max ICS)
-    putStrLn "Null a"
-    quickBatch $ monoid (undefined :: Null)
     putStrLn "-----------------------------------------"
