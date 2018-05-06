@@ -105,7 +105,7 @@ foldF = foldMap . mappend $ mempty
 --
 -- Define foldMap in terms of foldr
 foldMapF :: (Foldable t, Monoid m) => (a -> m) -> t a -> m
-foldMapF = undefined
+foldMapF f = foldr (mappend . f) mempty
 
 
 type ICS = (Int,Char,String)
