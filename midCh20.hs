@@ -14,18 +14,29 @@ import Test.QuickCheck.Classes
 -- of fmap or foldr from Foldable
 
 -- 1) sum
+
+-- foldMap
 sumF :: (Foldable t, Num a) => t a -> a
 sumF = getSum . (foldMap Sum)
 
+-- foldr
+sumF' :: (Foldable t, Num a) => t a -> a
+sumF' = foldr (+) 0
+
 
 -- 2) product
+
+-- foldMap
 productF :: (Foldable t, Num a) => t a -> a
 productF = getProduct . (foldMap Product)
+
+-- foldr
+productF' :: (Foldable t, Num a) => t a -> a
+productF' = foldr (*) 1
 
 
 -- 3) elem
 elemF :: (Foldable t, Eq a) => a -> t a -> Bool
---elemF a ta = getAny $ foldMap (Any . (== a)) ta
 elemF a = getAny . (foldMap (Any . (== a)))
 
 
