@@ -107,8 +107,14 @@ maximumF' = foldr go Nothing
 
 
 -- 6) null
+
+-- foldMap
 nullF :: Foldable t => t a -> Bool
 nullF = getAll . (foldMap (const (All False)))
+
+-- foldr
+nullF' :: Foldable t => t a -> Bool
+nullF' = foldr (\_ _ -> False) True
 
 
 -- 7) length
