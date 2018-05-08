@@ -36,8 +36,14 @@ productF' = foldr (*) 1
 
 
 -- 3) elem
+
+-- foldMap
 elemF :: (Foldable t, Eq a) => a -> t a -> Bool
 elemF a = getAny . (foldMap (Any . (== a)))
+
+-- foldr
+elemF' :: (Foldable t, Eq a) => a -> t a -> Bool
+elemF' a = foldr (\x y -> y || (a == x)) False
 
 
 -- 4) minimum
@@ -56,8 +62,18 @@ instance Arbitrary a => Arbitrary (Min a) where
 instance Eq a => EqProp (Min a) where
     (=-=) = eq
 
+-- foldMap
 minimumF :: (Foldable t, Ord a) => t a -> Maybe a
 minimumF = getMin . (foldMap (Min . pure))
+
+-- foldr
+minimumF' :: (Foldable t, Ord a) => t a -> Maybe a
+minimumF' = foldr go Nothing
+    where
+        go x y =
+            case y of
+                Nothing -> Just x
+                Just a  -> Just (min x a)
 
 
 -- 5) maximum
@@ -76,8 +92,18 @@ instance Arbitrary a => Arbitrary (Max a) where
 instance Eq a => EqProp (Max a) where
     (=-=) = eq
 
+-- foldMap
 maximumF :: (Foldable t, Ord a) => t a -> Maybe a
 maximumF = getMax . (foldMap (Max . pure))
+
+-- foldr
+maximumF' :: (Foldable t, Ord a) => t a -> Maybe a
+maximumF' = foldr go Nothing
+    where
+        go x y =
+            case y of
+                Nothing -> Just x
+                Just a  -> Just (max x a)
 
 
 -- 6) null
