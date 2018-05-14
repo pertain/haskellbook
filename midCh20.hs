@@ -139,12 +139,12 @@ toListF' :: Foldable t => t a -> [a]
 toListF' = foldr (:) []
 
 
--- 9) fold
+-- 9) Implement fold in terms of foldMap
 foldF :: (Foldable t, Monoid m) => t m -> m
 foldF = foldMap . mappend $ mempty
 
 
--- 10) foldMap
+-- 10) Implement foldMap in terms of foldr
 --
 -- Define foldMap in terms of foldr
 foldMapF :: (Foldable t, Monoid m) => (a -> m) -> t a -> m
