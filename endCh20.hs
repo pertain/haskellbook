@@ -54,4 +54,6 @@ instance Foldable (Four' a) where
 -- types using foldMap
 filterF :: (Applicative f, Foldable t, Monoid (f a))
         => (a -> Bool) -> t a -> f a
-filterF = undefined
+filterF f t = foldMap (go f) t
+    where
+        go f' a = if f' a then pure a else mempty a
