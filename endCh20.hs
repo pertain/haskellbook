@@ -2,6 +2,7 @@
 --
 -- End of chapter exercises (ch 20)
 
+import Data.Monoid ((<>))
 
 -- Write Foldable instances
 
@@ -37,8 +38,8 @@ data Three' a b = Three' a b b
     deriving (Eq, Show)
 
 instance Foldable (Three' a) where
-    foldr f z (Three' _ _ b) = f b z
-    foldMap f (Three' _ _ b) = f b
+    foldr f z (Three' _ b b') = f b (f b' z)
+    foldMap f (Three' _ b b') = f b <> f b'
 
 
 -- 5)
@@ -46,14 +47,12 @@ data Four' a b = Four' a b b b
     deriving (Eq, Show)
 
 instance Foldable (Four' a) where
-    foldr f z (Four' _ _ _ b) = f b z
-    foldMap f (Four' _ _ _ b) = f b
+    foldr f z (Four' _ b b' b'') = f b (f b' (f b'' z))
+    foldMap f (Four' _ b b' b'') = f b <> f b' <> f b''
 
 
 -- Write a filter function for Foldable
 -- types using foldMap
 filterF :: (Applicative f, Foldable t, Monoid (f a))
         => (a -> Bool) -> t a -> f a
-filterF f t = foldMap (go f) t
-    where
-        go f' a = if f' a then pure a else mempty a
+filterF f = foldMap (\x -> if f x then pure x else mempty)
