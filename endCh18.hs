@@ -4,7 +4,8 @@
 
 {-# LANGUAGE FlexibleInstances #-}
 
-import Data.Monoid
+import Data.Monoid hiding ((<>))
+import Data.Semigroup
 import Control.Monad
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
@@ -93,6 +94,9 @@ instance Monoid (List a) where
     mempty = Nil
     mappend Nil ys = ys
     mappend (Cons x xs) ys = Cons x (mappend xs ys)
+
+instance Semigroup (List a) where
+    (<>) = mappend
 
 instance Functor List where
     fmap _ Nil = Nil

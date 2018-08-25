@@ -3,7 +3,8 @@
 -- In-chapter exercises (ch 20)
 
 import Data.Foldable
-import Data.Monoid
+import Data.Monoid hiding ((<>))
+import Data.Semigroup
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes
@@ -47,24 +48,27 @@ elemF' a = foldr (\x y -> y || (a == x)) False
 
 
 -- 4) minimum
-newtype Min a = Min {getMin :: Maybe a}
+newtype MinM a = MinM {getMinM :: Maybe a}
     deriving (Eq, Show)
 
-instance Ord a => Monoid (Min a) where
-    mempty = Min Nothing
-    mappend a (Min Nothing) = a
-    mappend (Min Nothing) a = a
-    mappend (Min a) (Min a') = Min (min a a')
+instance Ord a => Monoid (MinM a) where
+    mempty = MinM Nothing
+    mappend a (MinM Nothing) = a
+    mappend (MinM Nothing) a = a
+    mappend (MinM a) (MinM a') = MinM (min a a')
 
-instance Arbitrary a => Arbitrary (Min a) where
-    arbitrary = Min <$> arbitrary
+instance Ord a => Semigroup (MinM a) where
+    (<>) = mappend
 
-instance Eq a => EqProp (Min a) where
+instance Arbitrary a => Arbitrary (MinM a) where
+    arbitrary = MinM <$> arbitrary
+
+instance Eq a => EqProp (MinM a) where
     (=-=) = eq
 
 -- foldMap
 minimumF :: (Foldable t, Ord a) => t a -> Maybe a
-minimumF = getMin . (foldMap (Min . pure))
+minimumF = getMinM . (foldMap (MinM . pure))
 
 -- foldr
 minimumF' :: (Foldable t, Ord a) => t a -> Maybe a
@@ -77,24 +81,27 @@ minimumF' = foldr go Nothing
 
 
 -- 5) maximum
-newtype Max a = Max {getMax :: Maybe a}
+newtype MaxM a = MaxM {getMaxM :: Maybe a}
     deriving (Eq, Show)
 
-instance Ord a => Monoid (Max a) where
-    mempty = Max Nothing
-    mappend a (Max Nothing) = a
-    mappend (Max Nothing) a = a
-    mappend (Max a) (Max a') = Max (max a a')
+instance Ord a => Monoid (MaxM a) where
+    mempty = MaxM Nothing
+    mappend a (MaxM Nothing) = a
+    mappend (MaxM Nothing) a = a
+    mappend (MaxM a) (MaxM a') = MaxM (max a a')
 
-instance Arbitrary a => Arbitrary (Max a) where
-    arbitrary = Max <$> arbitrary
+instance Ord a => Semigroup (MaxM a) where
+    (<>) = mappend
 
-instance Eq a => EqProp (Max a) where
+instance Arbitrary a => Arbitrary (MaxM a) where
+    arbitrary = MaxM <$> arbitrary
+
+instance Eq a => EqProp (MaxM a) where
     (=-=) = eq
 
 -- foldMap
 maximumF :: (Foldable t, Ord a) => t a -> Maybe a
-maximumF = getMax . (foldMap (Max . pure))
+maximumF = getMaxM . (foldMap (MaxM . pure))
 
 -- foldr
 maximumF' :: (Foldable t, Ord a) => t a -> Maybe a
@@ -156,8 +163,8 @@ type ICS = (Int,Char,String)
 main :: IO ()
 main = do
     putStrLn "-----------------------------------------"
-    putStrLn "Min a"
-    quickBatch $ monoid (undefined :: Min ICS)
-    putStrLn "Max a"
-    quickBatch $ monoid (undefined :: Max ICS)
+    putStrLn "MinM a"
+    quickBatch $ monoid (undefined :: MinM ICS)
+    putStrLn "\nMaxM a"
+    quickBatch $ monoid (undefined :: MaxM ICS)
     putStrLn "-----------------------------------------"
