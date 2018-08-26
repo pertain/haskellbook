@@ -3,7 +3,8 @@
 -- In-Chapter exercises (ch 15)
 
 --import Control.Monad
-import Data.Monoid
+import Data.Monoid hiding ((<>))
+import Data.Semigroup
 import Test.QuickCheck
 
 
@@ -17,6 +18,9 @@ instance Monoid a => Monoid (Optional a)
         mappend Nada x = x
         mappend x Nada = x
         mappend (Only x) (Only y) = Only (mappend x y)
+
+instance Monoid a => Semigroup (Optional a) where
+    (<>) = mappend
 
 
 -- Madness
@@ -77,6 +81,9 @@ instance Monoid Bull where
     mempty = Fools
     mappend _ _ = Fools
 
+instance Semigroup Bull where
+    (<>) = mappend
+
 type BullMappend = Bull -> Bull -> Bull -> Bool
 
 
@@ -97,6 +104,9 @@ instance Monoid (First' a) where
     mappend (First' Nada) x = x
     mappend x _ = x
 
+instance Semigroup (First' a) where
+    (<>) = mappend
+
 firstMappend :: First' a -> First' a -> First' a
 firstMappend = mappend
 
@@ -110,13 +120,15 @@ type FstId = First' String -> Bool
 
 main :: IO ()
 main = do
-    let ma = monoidAssoc
-        mli = monoidLeftIdentity
-        mri = monoidRightIdentity
-    quickCheck (ma :: BullMappend)
-    quickCheck (mli :: Bull -> Bool)
-    quickCheck (mri :: Bull -> Bool)
+    putStrLn "-----------------------------------------"
+    putStrLn "Bull"
+    quickCheck (monoidAssoc :: BullMappend)
+    quickCheck (monoidLeftIdentity :: Bull -> Bool)
+    quickCheck (monoidRightIdentity :: Bull -> Bool)
+    putStrLn "-----------------------------------------"
 
+    putStrLn "First'"
     quickCheck (monoidAssoc :: FirstMappend)
     quickCheck (monoidLeftIdentity :: FstId)
     quickCheck (monoidRightIdentity :: FstId)
+    putStrLn "-----------------------------------------"

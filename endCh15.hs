@@ -443,6 +443,9 @@ instance Monoid a => Monoid (Mem s a) where
         where
             go f' g' x = (fst (f' x) `mappend` fst (g' x), snd (f' (snd (g' x))))
 
+instance Monoid a => Semigroup (Mem s a) where
+    (<>) = mappend
+
 instance (CoArbitrary s, Arbitrary s, Arbitrary a) => Arbitrary (Mem s a) where
     --arbitrary = do
         --f <- arbitrary
