@@ -12,7 +12,7 @@ import Test.QuickCheck.Classes
 -- Exercises: Library Functions
 --
 -- Implement the functions in terms
--- of fmap or foldr from Foldable
+-- of foldMap or foldr from Foldable
 
 -- 1) sum
 
