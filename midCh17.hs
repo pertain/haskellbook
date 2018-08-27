@@ -3,7 +3,8 @@
 -- In-Chapter exercises (ch 17)
 
 --import Control.Applicative (liftA2)
-import Data.Monoid
+import Data.Monoid hiding ((<>))
+import Data.Semigroup
 import Control.Monad (liftM2)
 import Data.List (elemIndex)
 import Test.QuickCheck
@@ -131,6 +132,9 @@ instance Monoid (List a) where
     mempty = Nil
     mappend Nil ys = ys
     mappend (Cons x xs) ys = Cons x (mappend xs ys)
+
+instance Semigroup (List a) where
+    (<>) = mappend
 
 instance Functor List where
     fmap _ Nil = Nil
