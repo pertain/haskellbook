@@ -2,10 +2,8 @@
 --
 -- End of chapter exercises (ch 18)
 
-{-# LANGUAGE FlexibleInstances #-}
+--{-# LANGUAGE FlexibleInstances #-}
 
-import Data.Monoid hiding ((<>))
-import Data.Semigroup
 import Control.Monad
 import Test.QuickCheck
 import Test.QuickCheck.Checkers

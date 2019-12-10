@@ -2,7 +2,6 @@
 --
 -- End of chapter exercises (ch 17)
 
-import Data.Monoid
 --import Control.Monad (liftM2, liftM3, liftM4)
 import Test.QuickCheck
 import Test.QuickCheck.Checkers

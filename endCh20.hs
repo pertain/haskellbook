@@ -2,7 +2,6 @@
 --
 -- End of chapter exercises (ch 20)
 
-import Data.Monoid ((<>))
 
 -- Write Foldable instances
 

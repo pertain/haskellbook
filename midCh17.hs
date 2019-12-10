@@ -3,8 +3,6 @@
 -- In-Chapter exercises (ch 17)
 
 --import Control.Applicative (liftA2)
-import Data.Monoid hiding ((<>))
-import Data.Semigroup
 import Control.Monad (liftM2)
 import Data.List (elemIndex)
 import Test.QuickCheck

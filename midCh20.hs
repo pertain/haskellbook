@@ -3,7 +3,6 @@
 -- In-chapter exercises (ch 20)
 
 import Data.Foldable
-import Data.Monoid hiding ((<>))
 import Data.Semigroup
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
