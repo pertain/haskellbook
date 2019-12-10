@@ -5,7 +5,7 @@
 import Control.Monad (join, (>=>))
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
-import Test.QuickCheck.Classes
+import Test.QuickCheck.Classes hiding (bind)
 
 
 -- Write bind in terms of fmap and join
