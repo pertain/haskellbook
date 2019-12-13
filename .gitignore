@@ -17,9 +17,10 @@
 !*.hs
 
 # ---------------------------------
-# Include text files
+# Include text and markdown files
 # ---------------------------------
 !*.txt
+!*.md
 
 # ---------------------------------
 # Include hangman project
